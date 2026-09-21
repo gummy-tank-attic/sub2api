@@ -655,6 +655,7 @@ import {
 } from '@/api/admin/system'
 import { useClipboard } from '@/composables/useClipboard'
 import Icon from '@/components/icons/Icon.vue'
+import { formatDisplayVersion } from '@/utils/version'
 
 const GITHUB_REPO = 'Wei-Shaw/sub2api'
 // Docker Hub image published by CI (tags carry no "v" prefix, e.g. weishaw/sub2api:0.1.146)
@@ -673,20 +674,6 @@ const isAdmin = computed(() => authStore.isAdmin)
 
 const dropdownOpen = ref(false)
 const dropdownRef = ref<HTMLElement | null>(null)
-
-// Format long commit SHA hashes (e.g. 30349e156eef...-fxvia -> 30349e1-fxvia)
-export function formatDisplayVersion(rawVersion: string): string {
-  if (!rawVersion) return ''
-  const trimmed = rawVersion.trim()
-  const stripped = trimmed.replace(/^v/i, '')
-
-  const fullShaMatch = stripped.match(/^([0-9a-fA-F]{7})[0-9a-fA-F]{20,}(.*)$/)
-  if (fullShaMatch) {
-    return `${fullShaMatch[1]}${fullShaMatch[2]}`
-  }
-
-  return stripped
-}
 
 // Use store's cached version state
 const loading = computed(() => appStore.versionLoading)
