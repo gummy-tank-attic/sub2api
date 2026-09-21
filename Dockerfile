@@ -41,7 +41,12 @@ RUN --mount=type=cache,id=sub2api-pnpm-store,target=/root/.local/share/pnpm/stor
 # Copy only that subtree to keep the build dependency minimal.
 COPY frontend/ ./
 COPY docs/legal/ /app/docs/legal/
-RUN pnpm run build
+# FXVIA keeps brand-only overrides outside the upstream frontend tree so that
+# routine upstream merges do not contain unrelated visual changes. The file is
+# appended only in the custom build context and has no effect upstream.
+COPY front-fxvia/ /app/front-fxvia/
+RUN if [ -f /app/front-fxvia/brand.css ]; then cat /app/front-fxvia/brand.css >> ./src/style.css; fi && \
+    pnpm run build
 
 # -----------------------------------------------------------------------------
 # Stage 2: Backend Builder

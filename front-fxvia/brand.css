@@ -1,0 +1,25 @@
+
+/* FXVIA brand layer. Keep this file limited to visual tokens and additive
+   selectors; business logic remains in the upstream application. */
+@layer base {
+  :root {
+    --fxvia-accent: #2563eb;
+    --fxvia-accent-strong: #1d4ed8;
+  }
+
+  ::selection {
+    background: color-mix(in srgb, var(--fxvia-accent) 20%, transparent);
+  }
+}
+
+@layer components {
+  .btn-primary {
+    background-image: none;
+    background-color: var(--fxvia-accent);
+  }
+
+  .btn-primary:hover {
+    background-image: none;
+    background-color: var(--fxvia-accent-strong);
+  }
+}
