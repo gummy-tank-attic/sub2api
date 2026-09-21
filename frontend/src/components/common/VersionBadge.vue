@@ -4,21 +4,21 @@
     <template v-if="isAdmin">
       <button
         @click="toggleDropdown"
-        class="flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs transition-colors"
+        class="inline-flex max-w-[10.5rem] items-center gap-1.5 rounded-lg px-2 py-1 text-xs transition-colors"
         :class="[
           hasUpdate
             ? 'bg-amber-100 text-amber-700 hover:bg-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:hover:bg-amber-900/50'
             : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-dark-800 dark:text-dark-400 dark:hover:bg-dark-700'
         ]"
-        :title="hasUpdate ? t('version.updateAvailable') : t('version.upToDate')"
+        :title="badgeTitle"
       >
-        <span v-if="currentVersion" class="font-medium">v{{ currentVersion }}</span>
+        <span v-if="displayVersion" class="min-w-0 truncate font-medium">v{{ displayVersion }}</span>
         <span
           v-else
           class="h-3 w-12 animate-pulse rounded bg-gray-200 font-medium dark:bg-dark-600"
         ></span>
         <!-- Update indicator -->
-        <span v-if="hasUpdate" class="relative flex h-2 w-2">
+        <span v-if="hasUpdate" class="relative flex h-2 w-2 flex-shrink-0">
           <span
             class="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75"
           ></span>
@@ -80,10 +80,11 @@
             <template v-else>
               <!-- Version display - centered and prominent -->
               <div class="mb-4 text-center">
-                <div class="inline-flex items-center gap-2">
+                <div class="inline-flex max-w-full items-center justify-center gap-2">
                   <span
                     v-if="currentVersion"
-                    class="text-2xl font-bold text-gray-900 dark:text-white"
+                    class="break-all font-bold text-gray-900 dark:text-white"
+                    :class="currentVersion.length > 20 ? 'text-lg' : 'text-2xl'"
                     >v{{ currentVersion }}</span
                   >
                   <span v-else class="text-2xl font-bold text-gray-400 dark:text-dark-500">--</span>
@@ -631,8 +632,12 @@
     </template>
 
     <!-- Non-admin: Simple static version text -->
-    <span v-else-if="version" class="text-xs text-gray-500 dark:text-dark-400">
-      v{{ version }}
+    <span
+      v-else-if="version"
+      class="inline-block max-w-[10.5rem] truncate text-xs text-gray-500 dark:text-dark-400"
+      :title="`v${version}`"
+    >
+      v{{ formatDisplayVersion(version) }}
     </span>
   </div>
 </template>
@@ -669,13 +674,34 @@ const isAdmin = computed(() => authStore.isAdmin)
 const dropdownOpen = ref(false)
 const dropdownRef = ref<HTMLElement | null>(null)
 
+// Format long commit SHA hashes (e.g. 30349e156eef...-fxvia -> 30349e1-fxvia)
+export function formatDisplayVersion(rawVersion: string): string {
+  if (!rawVersion) return ''
+  const trimmed = rawVersion.trim()
+  const stripped = trimmed.replace(/^v/i, '')
+
+  const fullShaMatch = stripped.match(/^([0-9a-fA-F]{7})[0-9a-fA-F]{20,}(.*)$/)
+  if (fullShaMatch) {
+    return `${fullShaMatch[1]}${fullShaMatch[2]}`
+  }
+
+  return stripped
+}
+
 // Use store's cached version state
 const loading = computed(() => appStore.versionLoading)
 const currentVersion = computed(() => appStore.currentVersion || props.version || '')
+const displayVersion = computed(() => formatDisplayVersion(currentVersion.value))
 const latestVersion = computed(() => appStore.latestVersion)
 const hasUpdate = computed(() => appStore.hasUpdate)
 const releaseInfo = computed(() => appStore.releaseInfo)
 const buildType = computed(() => appStore.buildType)
+
+const badgeTitle = computed(() => {
+  const status = hasUpdate.value ? t('version.updateAvailable') : t('version.upToDate')
+  const full = currentVersion.value ? ` (v${currentVersion.value})` : ''
+  return `${status}${full}`
+})
 
 // Update process states (local to this component)
 const updating = ref(false)
