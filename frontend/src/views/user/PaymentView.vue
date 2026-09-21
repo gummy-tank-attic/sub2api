@@ -88,6 +88,19 @@
                 </p>
               </div>
             </div>
+            <div class="rounded-xl border border-amber-200/80 bg-amber-50/60 p-4 text-xs leading-relaxed text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-200">
+              <div class="mb-2 flex items-center gap-1.5 font-semibold text-amber-800 dark:text-amber-300">
+                <svg class="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                </svg>
+                <span class="text-sm">充值须知与服务说明</span>
+              </div>
+              <ol class="list-decimal list-inside space-y-1.5 text-gray-700 dark:text-gray-300">
+                <li><strong class="text-amber-950 dark:text-amber-100">充值换算</strong>：支付 $1.00，实际获得 $7.00 账户额度。</li>
+                <li><strong class="text-amber-950 dark:text-amber-100">不可退款声明</strong>：由于虚拟商品的特殊性质，已充值额度不提供退款服务。</li>
+                <li><strong class="text-amber-950 dark:text-amber-100">小额测试建议</strong>：为保障您的权益，建议您首次先进行小额充值测试，确认符合需求后再按需充值。</li>
+              </ol>
+            </div>
             <button :class="['btn w-full py-3 text-base font-medium', paymentButtonClass]" :disabled="!canSubmit || submitting" @click="handleSubmitRecharge">
               <span v-if="submitting" class="flex items-center justify-center gap-2">
                 <span class="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
