@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatDisplayVersion } from '../VersionBadge.vue'
+import { formatDisplayVersion } from '@/utils/version'
 
 describe('formatDisplayVersion', () => {
   it('handles standard semantic versions', () => {
