@@ -49,7 +49,7 @@
                 </div>
                 <div class="text-sm sm:text-base font-semibold text-amber-950 dark:text-amber-100">
                   <span class="text-amber-900 dark:text-amber-200">充值换算：</span>
-                  <span>支付 <span class="text-amber-600 dark:text-amber-400 font-bold">$1.00</span>，实际获得 <span class="text-amber-600 dark:text-amber-400 font-bold text-base sm:text-lg">$7.00</span> 账户额度。</span>
+                  <span>支付 <span class="text-amber-600 dark:text-amber-400 font-bold">$1.00</span>，实际获得 <span class="text-amber-600 dark:text-amber-400 font-bold">$7.00</span> 账户额度。</span>
                 </div>
               </div>
             </div>
