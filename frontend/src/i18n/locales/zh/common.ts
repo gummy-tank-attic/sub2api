@@ -198,6 +198,8 @@ export default {
     mySubscriptions: '我的订阅',
     buySubscription: '充值/订阅',
     recharge: '充值',
+    cnyRecharge: 'CNY充值',
+    cnyRechargeAndRedeem: 'CNY充值 / 兑换',
     subscribe: '订阅',
     docs: '文档',
     myOrders: '我的订单',

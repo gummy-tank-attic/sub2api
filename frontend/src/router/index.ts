@@ -247,8 +247,8 @@ const routes: RouteRecordRaw[] = [
     meta: {
       requiresAuth: true,
       requiresAdmin: false,
-      title: 'Redeem Code',
-      titleKey: 'redeem.title',
+      title: 'CNY Recharge / Redeem',
+      titleKey: 'nav.cnyRechargeAndRedeem',
       descriptionKey: 'redeem.description'
     }
   },
@@ -313,6 +313,10 @@ const routes: RouteRecordRaw[] = [
       descriptionKey: 'purchase.description',
       requiresPayment: true
     }
+  },
+  {
+    path: '/cny-recharge',
+    redirect: '/redeem'
   },
   {
     path: '/orders',
