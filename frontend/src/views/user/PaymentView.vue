@@ -39,6 +39,21 @@
           </div>
           <!-- Top-up Tab -->
           <template v-else-if="activeTab === 'recharge'">
+            <!-- 充值换算 醒目提示条 -->
+            <div class="rounded-xl border border-amber-300/80 bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 p-4 shadow-sm dark:border-amber-700/50 dark:from-amber-950/40 dark:via-orange-950/30 dark:to-amber-950/40">
+              <div class="flex items-center gap-3">
+                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-500 text-white shadow-sm font-bold">
+                  <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                </div>
+                <div class="text-sm sm:text-base font-semibold text-amber-950 dark:text-amber-100">
+                  <span class="text-amber-900 dark:text-amber-200">充值换算：</span>
+                  <span>支付 <span class="text-amber-600 dark:text-amber-400 font-bold">$1.00</span>，实际获得 <span class="text-emerald-600 dark:text-emerald-400 font-bold text-base sm:text-lg">$7.00</span> 账户额度。</span>
+                </div>
+              </div>
+            </div>
+
             <!-- Recharge Account Card -->
             <div class="card p-5">
               <p class="text-xs font-medium text-gray-400 dark:text-gray-500">{{ t('payment.rechargeAccount') }}</p>
@@ -96,7 +111,6 @@
                 <span class="text-sm">充值须知与服务说明</span>
               </div>
               <ol class="list-decimal list-inside space-y-1.5 text-gray-700 dark:text-gray-300">
-                <li><strong class="text-amber-950 dark:text-amber-100">充值换算</strong>：支付 $1.00，实际获得 $7.00 账户额度。</li>
                 <li><strong class="text-amber-950 dark:text-amber-100">不可退款声明</strong>：由于虚拟商品的特殊性质，已充值额度不提供退款服务。</li>
                 <li><strong class="text-amber-950 dark:text-amber-100">小额测试建议</strong>：为保障您的权益，建议您首次先进行小额充值测试，确认符合需求后再按需充值。</li>
               </ol>
