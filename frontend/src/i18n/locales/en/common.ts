@@ -198,6 +198,8 @@ export default {
     mySubscriptions: 'My Subscriptions',
     buySubscription: 'Recharge / Subscription',
     recharge: 'Recharge',
+    cnyRecharge: 'CNY Top-up',
+    cnyRechargeAndRedeem: 'CNY Top-up / Redeem',
     subscribe: 'Subscription',
     docs: 'Docs',
     myOrders: 'My Orders',
