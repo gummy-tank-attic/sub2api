@@ -65,7 +65,15 @@ func enforceSessionBinding(
 	auditService *service.AuditLogService,
 	claims *service.JWTClaims,
 ) bool {
-	if settingService == nil || !settingService.IsSessionBindingEnabled(c.Request.Context()) {
+	if settingService == nil {
+		return true
+	}
+	enabled, err := settingService.SessionBindingEnabled(c.Request.Context())
+	if err != nil {
+		AbortWithError(c, 503, "AUTH_STATE_UNAVAILABLE", "Authentication policy is temporarily unavailable")
+		return false
+	}
+	if !enabled {
 		return true
 	}
 	if claims == nil || claims.BindingHash == "" {

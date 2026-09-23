@@ -416,6 +416,8 @@ type userHandlerEmailCacheStub struct {
 
 type userHandlerRefreshTokenCacheStub struct {
 	revokedUserIDs []int64
+	revokedAt      map[int64]time.Time
+	generations    map[int64]int64
 }
 
 func (s *userHandlerRefreshTokenCacheStub) StoreRefreshToken(context.Context, string, *service.RefreshTokenData, time.Duration) error {
@@ -423,6 +425,10 @@ func (s *userHandlerRefreshTokenCacheStub) StoreRefreshToken(context.Context, st
 }
 
 func (s *userHandlerRefreshTokenCacheStub) GetRefreshToken(context.Context, string) (*service.RefreshTokenData, error) {
+	return nil, service.ErrRefreshTokenNotFound
+}
+
+func (s *userHandlerRefreshTokenCacheStub) ConsumeRefreshToken(context.Context, string) (*service.RefreshTokenData, error) {
 	return nil, service.ErrRefreshTokenNotFound
 }
 
@@ -457,6 +463,33 @@ func (s *userHandlerRefreshTokenCacheStub) GetFamilyTokenHashes(context.Context,
 
 func (s *userHandlerRefreshTokenCacheStub) IsTokenInFamily(context.Context, string, string) (bool, error) {
 	return false, nil
+}
+
+func (s *userHandlerRefreshTokenCacheStub) RevokeAccessTokens(_ context.Context, userID int64, revokedAt time.Time, _ time.Duration) error {
+	if s.revokedAt == nil {
+		s.revokedAt = make(map[int64]time.Time)
+	}
+	s.revokedAt[userID] = revokedAt
+	return nil
+}
+
+func (s *userHandlerRefreshTokenCacheStub) GetAccessTokensRevokedAt(_ context.Context, userID int64) (time.Time, error) {
+	if revokedAt, ok := s.revokedAt[userID]; ok {
+		return revokedAt, nil
+	}
+	return time.Time{}, service.ErrRefreshTokenNotFound
+}
+
+func (s *userHandlerRefreshTokenCacheStub) GetSessionGeneration(_ context.Context, userID int64) (int64, error) {
+	return s.generations[userID], nil
+}
+
+func (s *userHandlerRefreshTokenCacheStub) IncrementSessionGeneration(_ context.Context, userID int64) (int64, error) {
+	if s.generations == nil {
+		s.generations = make(map[int64]int64)
+	}
+	s.generations[userID]++
+	return s.generations[userID], nil
 }
 
 func (s *userHandlerEmailCacheStub) GetVerificationCode(context.Context, string) (*service.VerificationCodeData, error) {

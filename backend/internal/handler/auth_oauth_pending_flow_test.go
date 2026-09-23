@@ -288,6 +288,7 @@ func TestExchangePendingOAuthCompletionBindCurrentUserPreviewThenFinalizeBindsId
 			"suggested_avatar_url":   "https://cdn.example/bound.png",
 		}).
 		SetLocalFlowState(map[string]any{
+			oauthBindGenerationKey: "0",
 			oauthCompletionResponseKey: map[string]any{
 				"access_token": "access-token",
 				"redirect":     "/settings/profile",
@@ -422,6 +423,7 @@ func TestExchangePendingOAuthCompletionBindCurrentUserOwnershipConflict(t *testi
 			"suggested_avatar_url":   "https://cdn.example/conflict.png",
 		}).
 		SetLocalFlowState(map[string]any{
+			oauthBindGenerationKey: "0",
 			oauthCompletionResponseKey: map[string]any{
 				"access_token": "access-token",
 			},
@@ -441,9 +443,9 @@ func TestExchangePendingOAuthCompletionBindCurrentUserOwnershipConflict(t *testi
 
 	handler.ExchangePendingOAuthCompletion(ginCtx)
 
-	require.Equal(t, http.StatusInternalServerError, recorder.Code)
+	require.Equal(t, http.StatusConflict, recorder.Code)
 	payload := decodeJSONBody(t, recorder)
-	require.Equal(t, "PENDING_AUTH_ADOPTION_APPLY_FAILED", payload["reason"])
+	require.Equal(t, "AUTH_IDENTITY_OWNERSHIP_CONFLICT", payload["reason"])
 
 	identity, err := client.AuthIdentity.Get(ctx, existingIdentity.ID)
 	require.NoError(t, err)
@@ -460,6 +462,67 @@ func TestExchangePendingOAuthCompletionBindCurrentUserOwnershipConflict(t *testi
 	storedSession, err := client.PendingAuthSession.Query().
 		Where(pendingauthsession.IDEQ(session.ID)).
 		Only(ctx)
+	require.NoError(t, err)
+	require.Nil(t, storedSession.ConsumedAt)
+}
+
+func TestExchangePendingOAuthCompletionRejectsRevokedBindAuthorization(t *testing.T) {
+	handler, client := newOAuthPendingFlowTestHandler(t, false)
+	ctx := context.Background()
+
+	targetUser, err := client.User.Create().
+		SetEmail("revoked-bind@example.com").
+		SetUsername("revoked-bind-user").
+		SetPasswordHash("hash").
+		SetRole(service.RoleUser).
+		SetStatus(service.StatusActive).
+		Save(ctx)
+	require.NoError(t, err)
+
+	session, err := client.PendingAuthSession.Create().
+		SetSessionToken("revoked-bind-session-token").
+		SetIntent("bind_current_user").
+		SetProviderType("linuxdo").
+		SetProviderKey("linuxdo").
+		SetProviderSubject("revoked-bind-subject").
+		SetTargetUserID(targetUser.ID).
+		SetResolvedEmail(targetUser.Email).
+		SetBrowserSessionKey("revoked-bind-browser-key").
+		SetLocalFlowState(map[string]any{
+			oauthBindGenerationKey: "0",
+			oauthCompletionResponseKey: map[string]any{
+				"access_token": "access-token",
+			},
+		}).
+		SetExpiresAt(time.Now().UTC().Add(10 * time.Minute)).
+		Save(ctx)
+	require.NoError(t, err)
+	require.NoError(t, handler.authService.RevokeAllUserTokens(ctx, targetUser.ID))
+
+	body := bytes.NewBufferString(`{"adopt_display_name":false,"adopt_avatar":false}`)
+	recorder := httptest.NewRecorder()
+	ginCtx, _ := gin.CreateTestContext(recorder)
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/oauth/pending/exchange", body)
+	req.Header.Set("Content-Type", "application/json")
+	req.AddCookie(&http.Cookie{Name: oauthPendingSessionCookieName, Value: encodeCookieValue(session.SessionToken)})
+	req.AddCookie(&http.Cookie{Name: oauthPendingBrowserCookieName, Value: encodeCookieValue(session.BrowserSessionKey)})
+	ginCtx.Request = req
+
+	handler.ExchangePendingOAuthCompletion(ginCtx)
+
+	require.Equal(t, http.StatusUnauthorized, recorder.Code)
+	payload := decodeJSONBody(t, recorder)
+	require.Equal(t, "OAUTH_BIND_AUTH_EXPIRED", payload["reason"])
+	identityCount, err := client.AuthIdentity.Query().
+		Where(
+			authidentity.ProviderTypeEQ("linuxdo"),
+			authidentity.ProviderKeyEQ("linuxdo"),
+			authidentity.ProviderSubjectEQ("revoked-bind-subject"),
+		).
+		Count(ctx)
+	require.NoError(t, err)
+	require.Zero(t, identityCount)
+	storedSession, err := client.PendingAuthSession.Get(ctx, session.ID)
 	require.NoError(t, err)
 	require.Nil(t, storedSession.ConsumedAt)
 }
@@ -2795,7 +2858,10 @@ func (s *oauthPendingFlowSettingRepoStub) Delete(context.Context, string) error 
 	return nil
 }
 
-type oauthPendingFlowRefreshTokenCacheStub struct{}
+type oauthPendingFlowRefreshTokenCacheStub struct {
+	generation int64
+	revokedAt  time.Time
+}
 
 type oauthPendingFlowEmailCacheStub struct {
 	verificationCodes map[string]*service.VerificationCodeData
@@ -2869,6 +2935,10 @@ func (s *oauthPendingFlowRefreshTokenCacheStub) GetRefreshToken(context.Context,
 	return nil, service.ErrRefreshTokenNotFound
 }
 
+func (s *oauthPendingFlowRefreshTokenCacheStub) ConsumeRefreshToken(context.Context, string) (*service.RefreshTokenData, error) {
+	return nil, service.ErrRefreshTokenNotFound
+}
+
 func (s *oauthPendingFlowRefreshTokenCacheStub) DeleteRefreshToken(context.Context, string) error {
 	return nil
 }
@@ -2899,6 +2969,27 @@ func (s *oauthPendingFlowRefreshTokenCacheStub) GetFamilyTokenHashes(context.Con
 
 func (s *oauthPendingFlowRefreshTokenCacheStub) IsTokenInFamily(context.Context, string, string) (bool, error) {
 	return false, nil
+}
+
+func (s *oauthPendingFlowRefreshTokenCacheStub) RevokeAccessTokens(_ context.Context, _ int64, revokedAt time.Time, _ time.Duration) error {
+	s.revokedAt = revokedAt
+	return nil
+}
+
+func (s *oauthPendingFlowRefreshTokenCacheStub) GetAccessTokensRevokedAt(context.Context, int64) (time.Time, error) {
+	if s.revokedAt.IsZero() {
+		return time.Time{}, service.ErrRefreshTokenNotFound
+	}
+	return s.revokedAt, nil
+}
+
+func (s *oauthPendingFlowRefreshTokenCacheStub) GetSessionGeneration(context.Context, int64) (int64, error) {
+	return s.generation, nil
+}
+
+func (s *oauthPendingFlowRefreshTokenCacheStub) IncrementSessionGeneration(context.Context, int64) (int64, error) {
+	s.generation++
+	return s.generation, nil
 }
 
 type oauthPendingFlowRedeemCodeRepo struct {
@@ -3541,6 +3632,15 @@ func (s *oauthPendingFlowTotpCacheStub) GetLoginSession(_ context.Context, tempT
 		return nil, nil
 	}
 	return s.loginSessions[tempToken], nil
+}
+
+func (s *oauthPendingFlowTotpCacheStub) ConsumeLoginSession(_ context.Context, tempToken string) (*service.TotpLoginSession, error) {
+	if s == nil || s.loginSessions == nil {
+		return nil, nil
+	}
+	session := s.loginSessions[tempToken]
+	delete(s.loginSessions, tempToken)
+	return session, nil
 }
 
 func (s *oauthPendingFlowTotpCacheStub) SetLoginSession(_ context.Context, tempToken string, session *service.TotpLoginSession, _ time.Duration) error {

@@ -166,9 +166,10 @@ func TestLinuxDoOAuthBindStartRedirectsAndSetsBindCookies(t *testing.T) {
 
 	bindCookie := findCookie(cookies, linuxDoOAuthBindUserCookieName)
 	require.NotNil(t, bindCookie)
-	userID, err := parseOAuthBindUserCookieValue(decodeCookieValueForTest(t, bindCookie.Value), "test-secret")
+	authorization, err := parseOAuthBindUserCookieValue(decodeCookieValueForTest(t, bindCookie.Value), "test-secret")
 	require.NoError(t, err)
-	require.Equal(t, int64(42), userID)
+	require.Equal(t, int64(42), authorization.UserID)
+	require.Equal(t, int64(0), authorization.SessionGeneration)
 }
 
 func TestLinuxDoOAuthStartOmitsPKCEWhenDisabled(t *testing.T) {
@@ -304,13 +305,26 @@ func TestLinuxDoOAuthBindStartAcceptsAccessTokenCookie(t *testing.T) {
 
 	bindCookie := findCookie(recorder.Result().Cookies(), linuxDoOAuthBindUserCookieName)
 	require.NotNil(t, bindCookie)
-	userID, err := parseOAuthBindUserCookieValue(decodeCookieValueForTest(t, bindCookie.Value), "test-secret")
+	authorization, err := parseOAuthBindUserCookieValue(decodeCookieValueForTest(t, bindCookie.Value), "test-secret")
 	require.NoError(t, err)
-	require.Equal(t, user.ID, userID)
+	require.Equal(t, user.ID, authorization.UserID)
 
 	accessTokenCookie := findCookie(recorder.Result().Cookies(), oauthBindAccessTokenCookieName)
 	require.NotNil(t, accessTokenCookie)
 	require.Equal(t, -1, accessTokenCookie.MaxAge)
+
+	require.NoError(t, handler.authService.RevokeAllUserTokens(context.Background(), user.ID))
+	revokedRecorder := httptest.NewRecorder()
+	revokedCtx, _ := gin.CreateTestContext(revokedRecorder)
+	revokedReq := httptest.NewRequest(http.MethodGet, "/api/v1/auth/oauth/linuxdo/start?intent=bind_current_user&redirect=/settings/connections", nil)
+	revokedReq.AddCookie(&http.Cookie{Name: oauthBindAccessTokenCookieName, Value: token, Path: oauthBindAccessTokenCookiePath})
+	revokedCtx.Request = revokedReq
+
+	handler.LinuxDoOAuthStart(revokedCtx)
+
+	require.Equal(t, http.StatusUnauthorized, revokedRecorder.Code)
+	revokedPayload := decodeJSONBody(t, revokedRecorder)
+	require.Equal(t, "UNAUTHORIZED", revokedPayload["reason"])
 }
 
 func TestPrepareOAuthBindAccessTokenCookieSetsHttpOnlyCookie(t *testing.T) {

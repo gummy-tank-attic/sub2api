@@ -261,8 +261,18 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	// Check if TOTP 2FA is enabled for this user
-	if h.totpService != nil && h.settingSvc.IsTotpEnabled(c.Request.Context()) && user.TotpEnabled {
+	// Check if TOTP 2FA is enabled for this user. A settings read failure must
+	// not be interpreted as the feature being disabled.
+	totpEnabled := false
+	if h.totpService != nil {
+		var err error
+		totpEnabled, err = h.settingSvc.TotpEnabled(c.Request.Context())
+		if err != nil {
+			response.ErrorFrom(c, infraerrors.ServiceUnavailable("AUTH_STATE_UNAVAILABLE", "Authentication settings temporarily unavailable"))
+			return
+		}
+	}
+	if h.totpService != nil && totpEnabled && user.TotpEnabled {
 		// Create a temporary login session for 2FA
 		tempToken, err := h.totpService.CreateLoginSession(c.Request.Context(), user.ID, user.Email)
 		if err != nil {
@@ -312,12 +322,8 @@ func (h *AuthHandler) Login2FA(c *gin.Context) {
 	// Get the login session
 	session, err := h.totpService.GetLoginSession(c.Request.Context(), req.TempToken)
 	if err != nil || session == nil {
-		tokenPrefix := ""
-		if len(req.TempToken) >= 8 {
-			tokenPrefix = req.TempToken[:8]
-		}
 		slog.Debug("login_2fa_session_invalid",
-			"temp_token_prefix", tokenPrefix,
+			"temp_token_len", len(req.TempToken),
 			"error", err)
 		response.BadRequest(c, "Invalid or expired 2FA session")
 		return
@@ -351,6 +357,20 @@ func (h *AuthHandler) Login2FA(c *gin.Context) {
 		response.ErrorFrom(c, err)
 		return
 	}
+
+	// Claim the verified 2FA session exactly once before any identity binding or
+	// token issuance. Concurrent requests that verified the same TOTP code can
+	// no longer both cross this boundary.
+	consumedSession, err := h.totpService.ConsumeLoginSession(c.Request.Context(), req.TempToken)
+	if err != nil {
+		response.ErrorFrom(c, infraerrors.ServiceUnavailable("TOTP_SESSION_UNAVAILABLE", "failed to consume 2FA session").WithCause(err))
+		return
+	}
+	if consumedSession == nil || consumedSession.UserID != session.UserID {
+		response.BadRequest(c, "Invalid or expired 2FA session")
+		return
+	}
+	session = consumedSession
 
 	if session.PendingOAuthBind != nil {
 		pendingSvc, err := h.pendingIdentityService()
@@ -408,9 +428,6 @@ func (h *AuthHandler) Login2FA(c *gin.Context) {
 			return
 		}
 	}
-
-	// Delete the login session (only after all checks pass)
-	_ = h.totpService.DeleteLoginSession(c.Request.Context(), req.TempToken)
 
 	if session.PendingOAuthBind == nil {
 		h.authService.RecordSuccessfulLogin(c.Request.Context(), user.ID)
@@ -726,15 +743,18 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 	// 允许空请求体（向后兼容）
 	_ = c.ShouldBindJSON(&req)
 
-	// 如果提供了Refresh Token，撤销它
+	var revokeErr error
+	// 如果提供了Refresh Token，撤销它及其整个 token family。
 	if req.RefreshToken != "" {
-		if err := h.authService.RevokeRefreshToken(c.Request.Context(), req.RefreshToken); err != nil {
-			slog.Debug("failed to revoke refresh token", "error", err)
-			// 不影响登出流程
-		}
+		revokeErr = h.authService.RevokeRefreshToken(c.Request.Context(), req.RefreshToken)
 	}
+	// Local logout cleanup is best-effort even if server-side revocation fails.
 	h.consumePendingOAuthSessionOnLogout(c)
 	clearOAuthLogoutCookies(c)
+	if revokeErr != nil {
+		response.ErrorFrom(c, infraerrors.ServiceUnavailable("LOGOUT_REVOCATION_FAILED", "server-side session revocation temporarily unavailable").WithCause(revokeErr))
+		return
+	}
 
 	response.Success(c, LogoutResponse{
 		Message: "Logged out successfully",
