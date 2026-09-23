@@ -91,6 +91,9 @@ func jwtAuth(
 			AbortWithError(c, 401, "TOKEN_REVOKED", "Token has been revoked (password changed)")
 			return
 		}
+		if !enforceAccessTokenRevocation(c, authService, claims) {
+			return
+		}
 
 		// 会话绑定校验：IP/UA 任一变化即撤销会话（功能可在系统设置中关闭）
 		if !enforceSessionBinding(c, authService, settingService, auditService, claims) {
@@ -98,8 +101,9 @@ func jwtAuth(
 		}
 
 		c.Set(string(ContextKeyUser), AuthSubject{
-			UserID:      user.ID,
-			Concurrency: user.Concurrency,
+			UserID:            user.ID,
+			Concurrency:       user.Concurrency,
+			SessionGeneration: claims.SessionGeneration,
 		})
 		c.Set(string(ContextKeyUserRole), user.Role)
 		c.Set(ContextKeyAuthEmail, user.Email)
@@ -110,6 +114,25 @@ func jwtAuth(
 
 		c.Next()
 	}
+}
+
+func enforceAccessTokenRevocation(c *gin.Context, authService *service.AuthService, claims *service.JWTClaims) bool {
+	if authService == nil {
+		return true
+	}
+	enforced, revoked, err := authService.CheckAccessTokenRevocation(c.Request.Context(), claims)
+	if !enforced {
+		return true
+	}
+	if err != nil {
+		AbortWithError(c, 503, "AUTH_STATE_UNAVAILABLE", "Authentication state temporarily unavailable")
+		return false
+	}
+	if revoked {
+		AbortWithError(c, 401, "TOKEN_REVOKED", "Token has been revoked")
+		return false
+	}
+	return true
 }
 
 // Deprecated: prefer GetAuthSubjectFromContext in auth_subject.go.

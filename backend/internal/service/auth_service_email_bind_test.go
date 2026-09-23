@@ -634,6 +634,35 @@ func TestAuthServiceBindEmailIdentity_RevokesExistingAccessAndRefreshTokens(t *t
 	require.True(t, errors.Is(err, service.ErrTokenRevoked) || errors.Is(err, service.ErrRefreshTokenInvalid))
 }
 
+func TestAuthServiceRevokeRefreshTokenRevokesEntireFamily(t *testing.T) {
+	ctx := context.Background()
+	refreshTokenCache := newEmailBindRefreshTokenCacheStub()
+	user := &service.User{
+		ID:           52,
+		Email:        "logout-family@example.com",
+		Username:     "logout-family",
+		PasswordHash: "hash",
+		Role:         service.RoleUser,
+		Status:       service.StatusActive,
+	}
+	userRepo := newEmailBindUserRepoStub(user)
+	cfg := &config.Config{JWT: config.JWTConfig{
+		Secret:                 "logout-family-secret",
+		ExpireHour:             1,
+		RefreshTokenExpireDays: 7,
+	}}
+	svc := service.NewAuthService(nil, userRepo, nil, refreshTokenCache, cfg, nil, nil, nil, nil, nil, nil, nil, nil)
+
+	first, err := svc.GenerateTokenPair(ctx, user, "shared-family")
+	require.NoError(t, err)
+	second, err := svc.GenerateTokenPair(ctx, user, "shared-family")
+	require.NoError(t, err)
+
+	require.NoError(t, svc.RevokeRefreshToken(ctx, first.RefreshToken))
+	_, err = svc.RefreshTokenPair(ctx, second.RefreshToken)
+	require.ErrorIs(t, err, service.ErrRefreshTokenInvalid)
+}
+
 func TestAuthServiceEmailIdentityBinding_RejectsEmailOutsideRegistrationSuffixWhitelist(t *testing.T) {
 	ctx := context.Background()
 	cache := &emailBindCacheStub{
@@ -892,6 +921,14 @@ func (s *emailBindRefreshTokenCacheStub) StoreRefreshToken(_ context.Context, to
 	defer s.mu.Unlock()
 	cloned := *data
 	s.tokens[tokenHash] = &cloned
+	if s.userSets[data.UserID] == nil {
+		s.userSets[data.UserID] = make(map[string]struct{})
+	}
+	s.userSets[data.UserID][tokenHash] = struct{}{}
+	if s.families[data.FamilyID] == nil {
+		s.families[data.FamilyID] = make(map[string]struct{})
+	}
+	s.families[data.FamilyID][tokenHash] = struct{}{}
 	return nil
 }
 
@@ -902,6 +939,22 @@ func (s *emailBindRefreshTokenCacheStub) GetRefreshToken(_ context.Context, toke
 	if !ok {
 		return nil, service.ErrRefreshTokenNotFound
 	}
+	cloned := *data
+	return &cloned, nil
+}
+
+func (s *emailBindRefreshTokenCacheStub) ConsumeRefreshToken(_ context.Context, tokenHash string) (*service.RefreshTokenData, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	data, ok := s.tokens[tokenHash]
+	if !ok {
+		return nil, service.ErrRefreshTokenNotFound
+	}
+	if data.Consumed {
+		cloned := *data
+		return &cloned, nil
+	}
+	data.Consumed = true
 	cloned := *data
 	return &cloned, nil
 }

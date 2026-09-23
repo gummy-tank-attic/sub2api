@@ -3,10 +3,15 @@
 package service
 
 import (
+	"bytes"
 	"context"
 	"errors"
+	"log/slog"
+	"strings"
 	"testing"
+	"time"
 
+	"github.com/pquerna/otp/totp"
 	"github.com/stretchr/testify/require"
 )
 
@@ -35,6 +40,27 @@ type totpVMSettingRepoStub struct {
 	SettingRepository
 	values map[string]string
 }
+
+type totpVMSecurityCacheStub struct {
+	TotpCache
+}
+
+func (s *totpVMSecurityCacheStub) GetVerifyAttempts(context.Context, int64) (int, error) {
+	return 0, nil
+}
+
+func (s *totpVMSecurityCacheStub) IncrementVerifyAttempts(context.Context, int64) (int, error) {
+	return 1, nil
+}
+
+func (s *totpVMSecurityCacheStub) ClearVerifyAttempts(context.Context, int64) error {
+	return nil
+}
+
+type totpVMPassthroughEncryptor struct{}
+
+func (totpVMPassthroughEncryptor) Encrypt(value string) (string, error) { return value, nil }
+func (totpVMPassthroughEncryptor) Decrypt(value string) (string, error) { return value, nil }
 
 func (s *totpVMSettingRepoStub) GetValue(ctx context.Context, key string) (string, error) {
 	v, ok := s.values[key]
@@ -105,3 +131,33 @@ func TestTotpDisableRegularUserStillRequiresEmailCode(t *testing.T) {
 	err := svc.Disable(context.Background(), user.ID, "", "whatever")
 	require.ErrorIs(t, err, ErrVerifyCodeRequired)
 }
+
+func TestTotpVerifyDebugLogsDoNotContainSecretOrCode(t *testing.T) {
+	const secret = "JBSWY3DPEHPK3PXP"
+	code, err := totp.GenerateCode(secret, time.Now())
+	require.NoError(t, err)
+
+	user := &User{
+		ID:                  17,
+		Email:               "totp-log@example.com",
+		Role:                RoleUser,
+		Status:              StatusActive,
+		TotpEnabled:         true,
+		TotpSecretEncrypted: totpStringPtr(secret),
+	}
+	userRepo := &totpVMUserRepoStub{user: user}
+	svc := NewTotpService(userRepo, totpVMPassthroughEncryptor{}, &totpVMSecurityCacheStub{}, nil, nil, nil)
+
+	var output bytes.Buffer
+	previous := slog.Default()
+	slog.SetDefault(slog.New(slog.NewTextHandler(&output, &slog.HandlerOptions{Level: slog.LevelDebug})))
+	t.Cleanup(func() { slog.SetDefault(previous) })
+
+	require.NoError(t, svc.VerifyCode(context.Background(), user.ID, code))
+	logs := output.String()
+	require.NotEmpty(t, logs)
+	require.False(t, strings.Contains(logs, secret), "TOTP secret leaked into debug logs")
+	require.False(t, strings.Contains(logs, code), "TOTP code leaked into debug logs")
+}
+
+func totpStringPtr(value string) *string { return &value }

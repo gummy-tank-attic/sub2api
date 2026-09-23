@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
@@ -38,6 +39,7 @@ const (
 
 	oauthCompletionResponseKey = "completion_response"
 	oauthPromoCodeStateKey     = "promo_code"
+	oauthBindGenerationKey     = "bind_session_generation"
 )
 
 var pendingOAuthCreateAccountPreCommitHook func(context.Context, *dbent.PendingAuthSession) error
@@ -46,6 +48,7 @@ type oauthPendingSessionPayload struct {
 	Intent                 string
 	Identity               service.PendingAuthIdentityKey
 	TargetUserID           *int64
+	SessionGeneration      *int64
 	ResolvedEmail          string
 	RedirectTo             string
 	BrowserSessionKey      string
@@ -242,6 +245,9 @@ func (h *AuthHandler) createOAuthPendingSession(c *gin.Context, payload oauthPen
 	}
 	if promoCode := readOAuthPromoCode(c); promoCode != "" {
 		localFlowState[oauthPromoCodeStateKey] = promoCode
+	}
+	if payload.SessionGeneration != nil {
+		localFlowState[oauthBindGenerationKey] = strconv.FormatInt(*payload.SessionGeneration, 10)
 	}
 
 	session, err := svc.CreatePendingSession(c.Request.Context(), service.CreatePendingAuthSessionInput{
@@ -1190,6 +1196,23 @@ func applyPendingOAuthBindingTx(
 		}
 		targetUserID = resolvedUserID
 	}
+	if strings.EqualFold(strings.TrimSpace(session.Intent), oauthIntentBindCurrentUser) {
+		if authService == nil {
+			return infraerrors.ServiceUnavailable("AUTH_STATE_UNAVAILABLE", "authentication state temporarily unavailable")
+		}
+		rawGeneration := strings.TrimSpace(pendingSessionStringValue(session.LocalFlowState, oauthBindGenerationKey))
+		expectedGeneration, err := strconv.ParseInt(rawGeneration, 10, 64)
+		if err != nil || expectedGeneration < 0 {
+			return infraerrors.Unauthorized("OAUTH_BIND_AUTH_EXPIRED", "oauth bind authorization has expired")
+		}
+		valid, err := authService.CheckSessionGeneration(ctx, targetUserID, expectedGeneration)
+		if err != nil {
+			return infraerrors.ServiceUnavailable("AUTH_STATE_UNAVAILABLE", "authentication state temporarily unavailable").WithCause(err)
+		}
+		if !valid {
+			return infraerrors.Unauthorized("OAUTH_BIND_AUTH_EXPIRED", "oauth bind authorization has expired")
+		}
+	}
 
 	adoptedDisplayName := ""
 	if decision != nil && decision.AdoptDisplayName {
@@ -1656,7 +1679,16 @@ func (h *AuthHandler) bindPendingOAuthLogin(c *gin.Context, provider string) {
 		response.ErrorFrom(c, err)
 		return
 	}
-	if h.totpService != nil && h.settingSvc.IsTotpEnabled(c.Request.Context()) && user.TotpEnabled {
+	totpEnabled := false
+	if h.totpService != nil {
+		var err error
+		totpEnabled, err = h.settingSvc.TotpEnabled(c.Request.Context())
+		if err != nil {
+			response.ErrorFrom(c, infraerrors.ServiceUnavailable("AUTH_STATE_UNAVAILABLE", "Authentication settings temporarily unavailable"))
+			return
+		}
+	}
+	if h.totpService != nil && totpEnabled && user.TotpEnabled {
 		tempToken, err := h.totpService.CreatePendingOAuthBindLoginSession(
 			c.Request.Context(),
 			user.ID,
@@ -2037,7 +2069,11 @@ func (h *AuthHandler) ExchangePendingOAuthCompletion(c *gin.Context) {
 		return
 	}
 	if err := applyPendingOAuthAdoption(c.Request.Context(), h.entClient(), h.authService, h.userService, session, decision, session.TargetUserID); err != nil {
-		response.ErrorFrom(c, infraerrors.InternalServer("PENDING_AUTH_ADOPTION_APPLY_FAILED", "failed to apply oauth profile adoption").WithCause(err))
+		if infraerrors.Code(err) >= http.StatusBadRequest && infraerrors.Code(err) < http.StatusInternalServerError {
+			response.ErrorFrom(c, err)
+		} else {
+			response.ErrorFrom(c, infraerrors.InternalServer("PENDING_AUTH_ADOPTION_APPLY_FAILED", "failed to apply oauth profile adoption").WithCause(err))
+		}
 		return
 	}
 

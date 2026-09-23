@@ -1,16 +1,32 @@
 package handler
 
 import (
+	"bytes"
 	"context"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
 
 	"github.com/Wei-Shaw/sub2api/ent/pendingauthsession"
+	"github.com/Wei-Shaw/sub2api/internal/config"
+	"github.com/Wei-Shaw/sub2api/internal/service"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/require"
 )
+
+type logoutFailureRefreshCache struct {
+	service.RefreshTokenCache
+}
+
+func (logoutFailureRefreshCache) GetRefreshToken(context.Context, string) (*service.RefreshTokenData, error) {
+	return &service.RefreshTokenData{FamilyID: "logout-family", ExpiresAt: time.Now().Add(time.Hour)}, nil
+}
+
+func (logoutFailureRefreshCache) DeleteTokenFamily(context.Context, string) error {
+	return errors.New("redis unavailable")
+}
 
 func TestLogoutClearsOAuthStateCookiesAndConsumesPendingSession(t *testing.T) {
 	handler, client := newOAuthPendingFlowTestHandler(t, false)
@@ -65,4 +81,25 @@ func TestLogoutClearsOAuthStateCookiesAndConsumesPendingSession(t *testing.T) {
 		Only(ctx)
 	require.NoError(t, err)
 	require.NotNil(t, storedSession.ConsumedAt)
+}
+
+func TestLogoutReportsServerRevocationFailureButStillClearsCookies(t *testing.T) {
+	authService := service.NewAuthService(nil, nil, nil, logoutFailureRefreshCache{}, &config.Config{
+		JWT: config.JWTConfig{RefreshTokenExpireDays: 7},
+	}, nil, nil, nil, nil, nil, nil, nil, nil)
+	handler := &AuthHandler{authService: authService}
+
+	recorder := httptest.NewRecorder()
+	ginCtx, _ := gin.CreateTestContext(recorder)
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/logout", bytes.NewBufferString(`{"refresh_token":"refresh-value"}`))
+	req.Header.Set("Content-Type", "application/json")
+	req.AddCookie(&http.Cookie{Name: oauthBindAccessTokenCookieName, Value: "bind-token"})
+	ginCtx.Request = req
+
+	handler.Logout(ginCtx)
+
+	require.Equal(t, http.StatusServiceUnavailable, recorder.Code)
+	payload := decodeJSONBody(t, recorder)
+	require.Equal(t, "LOGOUT_REVOCATION_FAILED", payload["reason"])
+	require.Equal(t, -1, findCookie(recorder.Result().Cookies(), oauthBindAccessTokenCookieName).MaxAge)
 }

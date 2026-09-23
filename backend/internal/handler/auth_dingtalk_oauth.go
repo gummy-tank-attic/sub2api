@@ -414,7 +414,7 @@ func (h *AuthHandler) DingTalkOAuthCallback(c *gin.Context) {
 
 	// ─── S1 主动绑定分支（PR-3 才走到这里）───
 	if intent == oauthIntentBindCurrentUser {
-		targetUserID, err := h.readOAuthBindUserIDFromCookie(c, dingTalkOAuthBindUserCookieName)
+		bindAuthorization, err := h.readOAuthBindAuthorizationFromCookie(c, dingTalkOAuthBindUserCookieName)
 		if err != nil {
 			redirectOAuthError(c, frontendCallback, "invalid_state", "invalid bind user cookie", "")
 			return
@@ -426,7 +426,7 @@ func (h *AuthHandler) DingTalkOAuthCallback(c *gin.Context) {
 		}
 		if err := h.createOAuthPendingSession(c, oauthPendingSessionPayload{
 			Intent: oauthIntentBindCurrentUser, Identity: identityKey,
-			TargetUserID: &targetUserID, ResolvedEmail: bindResolvedEmail,
+			TargetUserID: &bindAuthorization.UserID, SessionGeneration: &bindAuthorization.SessionGeneration, ResolvedEmail: bindResolvedEmail,
 			RedirectTo: redirectTo, BrowserSessionKey: browserSessionKey,
 			UpstreamIdentityClaims: upstreamClaims,
 			CompletionResponse:     map[string]any{"redirect": redirectTo},

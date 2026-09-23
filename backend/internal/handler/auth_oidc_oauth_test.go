@@ -182,9 +182,9 @@ func TestOIDCOAuthBindStartRedirectsAndSetsBindCookies(t *testing.T) {
 
 	bindCookie := findCookie(cookies, oidcOAuthBindUserCookieName)
 	require.NotNil(t, bindCookie)
-	userID, err := parseOAuthBindUserCookieValue(decodeCookieValueForTest(t, bindCookie.Value), "test-secret")
+	authorization, err := parseOAuthBindUserCookieValue(decodeCookieValueForTest(t, bindCookie.Value), "test-secret")
 	require.NoError(t, err)
-	require.Equal(t, int64(84), userID)
+	require.Equal(t, int64(84), authorization.UserID)
 }
 
 func TestOIDCOAuthStartOmitsPKCEAndNonceWhenDisabled(t *testing.T) {

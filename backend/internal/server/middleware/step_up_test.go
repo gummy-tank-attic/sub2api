@@ -35,8 +35,8 @@ type stubStepUpSettingReader struct {
 	enabled bool
 }
 
-func (s stubStepUpSettingReader) IsStepUpEnabled(ctx context.Context) bool {
-	return s.enabled
+func (s stubStepUpSettingReader) StepUpEnabled(ctx context.Context) (bool, error) {
+	return s.enabled, nil
 }
 
 // stepUpEnabled 功能开关开启的设置桩，供既有门控分支测试使用。

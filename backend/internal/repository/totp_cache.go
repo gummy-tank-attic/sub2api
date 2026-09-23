@@ -88,6 +88,23 @@ func (c *TotpCache) GetLoginSession(ctx context.Context, tempToken string) (*ser
 	return &session, nil
 }
 
+// ConsumeLoginSession atomically returns and removes a pending login session.
+func (c *TotpCache) ConsumeLoginSession(ctx context.Context, tempToken string) (*service.TotpLoginSession, error) {
+	key := totpLoginKeyPrefix + tempToken
+	data, err := c.rdb.GetDel(ctx, key).Bytes()
+	if err != nil {
+		if err == redis.Nil {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("consume login session: %w", err)
+	}
+	var session service.TotpLoginSession
+	if err := json.Unmarshal(data, &session); err != nil {
+		return nil, fmt.Errorf("unmarshal consumed login session: %w", err)
+	}
+	return &session, nil
+}
+
 // SetLoginSession stores a TOTP login session
 func (c *TotpCache) SetLoginSession(ctx context.Context, tempToken string, session *service.TotpLoginSession, ttl time.Duration) error {
 	key := totpLoginKeyPrefix + tempToken

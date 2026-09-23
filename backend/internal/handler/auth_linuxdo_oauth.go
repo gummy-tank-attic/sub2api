@@ -273,7 +273,7 @@ func (h *AuthHandler) LinuxDoOAuthCallback(c *gin.Context) {
 		upstreamClaims["compat_email"] = compatEmail
 	}
 	if intent == oauthIntentBindCurrentUser {
-		targetUserID, err := h.readOAuthBindUserIDFromCookie(c, linuxDoOAuthBindUserCookieName)
+		bindAuthorization, err := h.readOAuthBindAuthorizationFromCookie(c, linuxDoOAuthBindUserCookieName)
 		if err != nil {
 			redirectOAuthError(c, frontendCallback, "invalid_state", "invalid oauth bind target", "")
 			return
@@ -281,7 +281,8 @@ func (h *AuthHandler) LinuxDoOAuthCallback(c *gin.Context) {
 		if err := h.createOAuthPendingSession(c, oauthPendingSessionPayload{
 			Intent:                 oauthIntentBindCurrentUser,
 			Identity:               identityKey,
-			TargetUserID:           &targetUserID,
+			TargetUserID:           &bindAuthorization.UserID,
+			SessionGeneration:      &bindAuthorization.SessionGeneration,
 			ResolvedEmail:          email,
 			RedirectTo:             redirectTo,
 			BrowserSessionKey:      browserSessionKey,
@@ -1156,11 +1157,11 @@ func normalizeOAuthIntent(raw string) string {
 }
 
 func (h *AuthHandler) buildOAuthBindUserCookieFromContext(c *gin.Context) (string, error) {
-	userID, err := h.resolveOAuthBindTargetUserID(c)
-	if err != nil || userID == nil || *userID <= 0 {
+	authorization, err := h.resolveOAuthBindTargetUserID(c)
+	if err != nil || authorization == nil || authorization.UserID <= 0 {
 		return "", infraerrors.Unauthorized("UNAUTHORIZED", "authentication required")
 	}
-	return buildOAuthBindUserCookieValue(*userID, h.oauthBindCookieSecret())
+	return buildOAuthBindUserCookieValue(authorization.UserID, authorization.SessionGeneration, h.oauthBindCookieSecret())
 }
 
 func (h *AuthHandler) PrepareOAuthBindAccessTokenCookie(c *gin.Context) {
@@ -1183,9 +1184,14 @@ func (h *AuthHandler) PrepareOAuthBindAccessTokenCookie(c *gin.Context) {
 	c.Writer.WriteHeaderNow()
 }
 
-func (h *AuthHandler) resolveOAuthBindTargetUserID(c *gin.Context) (*int64, error) {
+type oauthBindAuthorization struct {
+	UserID            int64
+	SessionGeneration int64
+}
+
+func (h *AuthHandler) resolveOAuthBindTargetUserID(c *gin.Context) (*oauthBindAuthorization, error) {
 	if subject, ok := servermiddleware.GetAuthSubjectFromContext(c); ok && subject.UserID > 0 {
-		return &subject.UserID, nil
+		return &oauthBindAuthorization{UserID: subject.UserID, SessionGeneration: subject.SessionGeneration}, nil
 	}
 	if h == nil || h.authService == nil || h.userService == nil {
 		return nil, service.ErrInvalidToken
@@ -1209,6 +1215,13 @@ func (h *AuthHandler) resolveOAuthBindTargetUserID(c *gin.Context) (*int64, erro
 	if err != nil {
 		return nil, err
 	}
+	enforced, revoked, err := h.authService.CheckAccessTokenRevocation(c.Request.Context(), claims)
+	if err != nil || !enforced {
+		return nil, service.ErrServiceUnavailable
+	}
+	if revoked {
+		return nil, service.ErrTokenRevoked
+	}
 	user, err := h.userService.GetByID(c.Request.Context(), claims.UserID)
 	if err != nil {
 		return nil, err
@@ -1216,13 +1229,13 @@ func (h *AuthHandler) resolveOAuthBindTargetUserID(c *gin.Context) (*int64, erro
 	if user == nil || !user.IsActive() || claims.TokenVersion != user.TokenVersion {
 		return nil, service.ErrInvalidToken
 	}
-	return &user.ID, nil
+	return &oauthBindAuthorization{UserID: user.ID, SessionGeneration: claims.SessionGeneration}, nil
 }
 
-func (h *AuthHandler) readOAuthBindUserIDFromCookie(c *gin.Context, cookieName string) (int64, error) {
+func (h *AuthHandler) readOAuthBindAuthorizationFromCookie(c *gin.Context, cookieName string) (*oauthBindAuthorization, error) {
 	value, err := readCookieDecoded(c, cookieName)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 	return parseOAuthBindUserCookieValue(value, h.oauthBindCookieSecret())
 }
@@ -1234,36 +1247,44 @@ func (h *AuthHandler) oauthBindCookieSecret() string {
 	return strings.TrimSpace(h.cfg.JWT.Secret)
 }
 
-func buildOAuthBindUserCookieValue(userID int64, secret string) (string, error) {
+func buildOAuthBindUserCookieValue(userID, sessionGeneration int64, secret string) (string, error) {
 	secret = strings.TrimSpace(secret)
 	if userID <= 0 || secret == "" {
 		return "", errors.New("invalid oauth bind cookie input")
 	}
-	payload := strconv.FormatInt(userID, 10)
+	payload := strconv.FormatInt(userID, 10) + ":" + strconv.FormatInt(sessionGeneration, 10)
 	mac := hmac.New(sha256.New, []byte(secret))
 	_, _ = mac.Write([]byte(payload))
 	signature := base64.RawURLEncoding.EncodeToString(mac.Sum(nil))
 	return payload + "." + signature, nil
 }
 
-func parseOAuthBindUserCookieValue(value string, secret string) (int64, error) {
+func parseOAuthBindUserCookieValue(value string, secret string) (*oauthBindAuthorization, error) {
 	secret = strings.TrimSpace(secret)
 	if secret == "" {
-		return 0, errors.New("missing oauth bind cookie secret")
+		return nil, errors.New("missing oauth bind cookie secret")
 	}
 	payload, signature, ok := strings.Cut(strings.TrimSpace(value), ".")
 	if !ok || payload == "" || signature == "" {
-		return 0, errors.New("invalid oauth bind cookie")
+		return nil, errors.New("invalid oauth bind cookie")
 	}
 	mac := hmac.New(sha256.New, []byte(secret))
 	_, _ = mac.Write([]byte(payload))
 	expectedSignature := base64.RawURLEncoding.EncodeToString(mac.Sum(nil))
 	if !hmac.Equal([]byte(signature), []byte(expectedSignature)) {
-		return 0, errors.New("invalid oauth bind cookie signature")
+		return nil, errors.New("invalid oauth bind cookie signature")
 	}
-	userID, err := strconv.ParseInt(payload, 10, 64)
+	userPart, generationPart, ok := strings.Cut(payload, ":")
+	if !ok {
+		return nil, errors.New("invalid oauth bind cookie payload")
+	}
+	userID, err := strconv.ParseInt(userPart, 10, 64)
 	if err != nil || userID <= 0 {
-		return 0, errors.New("invalid oauth bind cookie user")
+		return nil, errors.New("invalid oauth bind cookie user")
 	}
-	return userID, nil
+	sessionGeneration, err := strconv.ParseInt(generationPart, 10, 64)
+	if err != nil || sessionGeneration < 0 {
+		return nil, errors.New("invalid oauth bind cookie generation")
+	}
+	return &oauthBindAuthorization{UserID: userID, SessionGeneration: sessionGeneration}, nil
 }
