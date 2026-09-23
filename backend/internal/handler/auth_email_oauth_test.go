@@ -130,7 +130,7 @@ func TestEmailOAuthCallbackExistingEmailLogsInWhenInvitationEnabled(t *testing.T
 	_ = user
 }
 
-func TestEmailOAuthCallbackCreatesPasswordRegistrationSessionForNewEmail(t *testing.T) {
+func TestEmailOAuthCallbackDirectlyRegistersNewEmailWhenInvitationDisabled(t *testing.T) {
 	affiliateRepo := newOAuthEmailAffiliateRepoStub(map[string]int64{"AFF123": 1001})
 	handler, client := newOAuthPendingFlowTestHandlerWithDependencies(t, oauthPendingFlowTestHandlerOptions{
 		settingValues: map[string]string{
@@ -162,30 +162,16 @@ func TestEmailOAuthCallbackCreatesPasswordRegistrationSessionForNewEmail(t *test
 	})
 
 	require.Equal(t, http.StatusFound, recorder.Code)
-	require.NotContains(t, recorder.Header().Get("Location"), "access_token=")
+	location := recorder.Header().Get("Location")
+	require.Contains(t, location, "access_token=")
 	userCount, err := client.User.Query().Where(dbuser.EmailEQ("aff-user@example.com")).Count(ctx)
 	require.NoError(t, err)
-	require.Zero(t, userCount)
-	require.Empty(t, affiliateRepo.ensureUserIDs)
-	require.Empty(t, affiliateRepo.bindCalls)
-
-	session, err := client.PendingAuthSession.Query().Only(ctx)
-	require.NoError(t, err)
-	require.Equal(t, "aff-user@example.com", session.ResolvedEmail)
-	require.Equal(t, "AFF123", pendingSessionStringValue(session.UpstreamIdentityClaims, "aff_code"))
-
-	completion, ok := readCompletionResponse(session.LocalFlowState)
-	require.True(t, ok)
-	require.Equal(t, oauthPendingChoiceStep, completion["step"])
-	require.Equal(t, "registration_completion_required", completion["error"])
-	require.Equal(t, false, completion["invitation_required"])
-	require.Equal(t, true, completion["create_account_allowed"])
-	require.Equal(t, true, completion["force_email_on_signup"])
-	require.Equal(t, "aff-user@example.com", completion["resolved_email"])
+	require.Equal(t, 1, userCount)
 }
 
 func TestEmailOAuthStartPreservesPromoCodeInPendingSession(t *testing.T) {
 	handler, client := newOAuthPendingFlowTestHandlerWithDependencies(t, oauthPendingFlowTestHandlerOptions{
+		invitationEnabled: true,
 		settingValues: map[string]string{
 			service.SettingKeyGitHubOAuthEnabled:      "true",
 			service.SettingKeyGitHubOAuthClientID:     "github-client",
