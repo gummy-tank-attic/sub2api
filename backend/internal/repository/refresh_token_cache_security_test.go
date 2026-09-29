@@ -3,6 +3,10 @@ package repository
 import (
 	"context"
 	"errors"
+	"fmt"
+	"reflect"
+	"strconv"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -12,6 +16,11 @@ import (
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/require"
 )
+
+// wideTokenVersion is the first integer float64 cannot represent exactly.
+func wideTokenVersion() int64 {
+	return (int64(1) << 53) + 1
+}
 
 func newRefreshTokenCacheSecurityTest(t *testing.T) (*refreshTokenCache, *miniredis.Miniredis) {
 	t.Helper()
@@ -69,6 +78,82 @@ func TestRefreshTokenStoreRejectsStaleGeneration(t *testing.T) {
 	require.False(t, mr.Exists(refreshTokenKey("hash-c")))
 }
 
+func TestConsumeRefreshTokenPreservesWideTokenVersion(t *testing.T) {
+	cache, mr := newRefreshTokenCacheSecurityTest(t)
+	ctx := context.Background()
+	version := wideTokenVersion()
+	generation, err := cache.IncrementSessionGeneration(ctx, 7)
+	require.NoError(t, err)
+	data := testRefreshTokenData(7, "family-big", generation)
+	data.TokenVersion = version
+	require.NoError(t, cache.StoreRefreshToken(ctx, "big-parent", data, time.Hour))
+
+	before, err := cache.rdb.Get(ctx, refreshTokenKey("big-parent")).Result()
+	require.NoError(t, err)
+
+	first, err := cache.ConsumeRefreshToken(ctx, "big-parent")
+	require.NoError(t, err)
+	require.False(t, first.Consumed)
+	require.Equal(t, version, first.TokenVersion)
+	require.Equal(t, int64(7), first.UserID)
+	require.Equal(t, generation, first.SessionGeneration)
+
+	after, err := cache.rdb.Get(ctx, refreshTokenKey("big-parent")).Result()
+	require.NoError(t, err)
+	require.Equal(t, before, after)
+	require.Contains(t, after, strconv.FormatInt(version, 10))
+	require.NotContains(t, after, "e+")
+	require.True(t, mr.Exists(refreshTokenConsumedKey("big-parent")))
+
+	replay, err := cache.ConsumeRefreshToken(ctx, "big-parent")
+	require.NoError(t, err)
+	require.True(t, replay.Consumed)
+	require.Equal(t, version, replay.TokenVersion)
+
+	require.NoError(t, cache.RevokeTokenFamily(ctx, "family-big", time.Hour))
+	require.False(t, mr.Exists(refreshTokenKey("big-parent")))
+	require.False(t, mr.Exists(refreshTokenConsumedKey("big-parent")))
+}
+
+func TestRefreshTokenReadsScientificNotationWithoutDroppingIdentity(t *testing.T) {
+	cache, mr := newRefreshTokenCacheSecurityTest(t)
+	ctx := context.Background()
+	version := wideTokenVersion()
+	payload := fmt.Sprintf("{\n  \"consumed\": true,\n  \"user_id\": 7,\n  \"token_version\": %s,\n  \"session_generation\": 4,\n  \"family_id\": \"family-sci\"\n}", strconv.FormatFloat(float64(version), 'e', -1, 64))
+	require.NoError(t, mr.Set(refreshTokenKey("sci"), payload))
+
+	got, err := cache.GetRefreshToken(ctx, "sci")
+	require.NoError(t, err)
+	require.Equal(t, int64(7), got.UserID)
+	require.Equal(t, "family-sci", got.FamilyID)
+	require.Equal(t, int64(4), got.SessionGeneration)
+	require.NotEqual(t, version, got.TokenVersion)
+
+	consumed, err := cache.ConsumeRefreshToken(ctx, "sci")
+	require.NoError(t, err)
+	require.True(t, consumed.Consumed)
+	require.Equal(t, "family-sci", consumed.FamilyID)
+	require.Equal(t, got.TokenVersion, consumed.TokenVersion)
+	raw, err := cache.rdb.Get(ctx, refreshTokenKey("sci")).Result()
+	require.NoError(t, err)
+	require.Equal(t, payload, raw)
+}
+
+func TestRefreshTokenCorruptPayloadIsMarkedCorrupt(t *testing.T) {
+	cache, mr := newRefreshTokenCacheSecurityTest(t)
+	ctx := context.Background()
+	require.NoError(t, mr.Set(refreshTokenKey("bad"), "not-json"))
+
+	_, err := cache.GetRefreshToken(ctx, "bad")
+	require.ErrorIs(t, err, service.ErrRefreshTokenCorrupt)
+
+	_, err = cache.ConsumeRefreshToken(ctx, "bad")
+	require.ErrorIs(t, err, service.ErrRefreshTokenCorrupt)
+	raw, getErr := cache.rdb.Get(ctx, refreshTokenKey("bad")).Result()
+	require.NoError(t, getErr)
+	require.Equal(t, "not-json", raw)
+}
+
 func TestConsumeRefreshTokenDistinguishesFirstUseFromReplay(t *testing.T) {
 	cache, _ := newRefreshTokenCacheSecurityTest(t)
 	ctx := context.Background()
@@ -81,6 +166,47 @@ func TestConsumeRefreshTokenDistinguishesFirstUseFromReplay(t *testing.T) {
 	replay, err := cache.ConsumeRefreshToken(ctx, "single-parent")
 	require.NoError(t, err)
 	require.True(t, replay.Consumed)
+}
+
+func TestRefreshTokenIndexCleanupReadsSpacedJSON(t *testing.T) {
+	cache, mr := newRefreshTokenCacheSecurityTest(t)
+	ctx := context.Background()
+	version := wideTokenVersion()
+	hash := "spaced-hash"
+	payload := fmt.Sprintf("{\n  \"user_id\" : %d,\n  \"token_version\" : %d,\n  \"family_id\" : \"family-spaced\"\n}", int64(7), version)
+	require.NoError(t, mr.Set(refreshTokenKey(hash), payload))
+	require.NoError(t, mr.Set(refreshTokenConsumedKey(hash), "1"))
+	require.NoError(t, cache.rdb.SAdd(ctx, userRefreshTokensKey(7), hash).Err())
+	require.NoError(t, cache.rdb.SAdd(ctx, tokenFamilyKey("family-spaced"), hash).Err())
+
+	require.NoError(t, cache.RevokeTokenFamily(ctx, "family-spaced", time.Hour))
+	require.False(t, mr.Exists(refreshTokenKey(hash)))
+	require.False(t, mr.Exists(refreshTokenConsumedKey(hash)))
+	userMembers, err := cache.rdb.SMembers(ctx, userRefreshTokensKey(7)).Result()
+	require.NoError(t, err)
+	require.NotContains(t, userMembers, hash)
+
+	otherHash := "spaced-user"
+	require.NoError(t, mr.Set(refreshTokenKey(otherHash), payload))
+	require.NoError(t, mr.Set(refreshTokenConsumedKey(otherHash), "1"))
+	require.NoError(t, cache.rdb.SAdd(ctx, userRefreshTokensKey(7), otherHash).Err())
+	require.NoError(t, cache.rdb.SAdd(ctx, tokenFamilyKey("family-spaced"), otherHash).Err())
+	require.NoError(t, cache.DeleteUserRefreshTokens(ctx, 7))
+	require.False(t, mr.Exists(refreshTokenKey(otherHash)))
+	require.False(t, mr.Exists(refreshTokenConsumedKey(otherHash)))
+	familyMembers, err := cache.rdb.SMembers(ctx, tokenFamilyKey("family-spaced")).Result()
+	require.NoError(t, err)
+	require.NotContains(t, familyMembers, otherHash)
+}
+
+func TestRefreshTokenJSONFieldsMatchStructTags(t *testing.T) {
+	typ := reflect.TypeOf(service.RefreshTokenData{})
+	family, ok := typ.FieldByName("FamilyID")
+	require.True(t, ok)
+	user, ok := typ.FieldByName("UserID")
+	require.True(t, ok)
+	require.Equal(t, refreshJSONFamilyID, strings.Split(family.Tag.Get("json"), ",")[0])
+	require.Equal(t, refreshJSONUserID, strings.Split(user.Tag.Get("json"), ",")[0])
 }
 
 func TestRevokeTokenFamilyClosesBothStoreOrderings(t *testing.T) {

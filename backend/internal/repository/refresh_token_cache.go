@@ -13,17 +13,37 @@ import (
 )
 
 const (
-	refreshTokenKeyPrefix    = "refresh_token:"
-	userRefreshTokensPrefix  = "user_refresh_tokens:"
-	tokenFamilyPrefix        = "token_family:"
-	revokedTokenFamilyPrefix = "revoked_token_family:"
-	accessTokenRevokedPrefix = "access_tokens_revoked:"
-	sessionGenerationPrefix  = "session_generation:"
+	refreshTokenKeyPrefix      = "refresh_token:"
+	refreshTokenConsumedPrefix = "refresh_token_consumed:"
+	userRefreshTokensPrefix    = "user_refresh_tokens:"
+	tokenFamilyPrefix          = "token_family:"
+	revokedTokenFamilyPrefix   = "revoked_token_family:"
+	accessTokenRevokedPrefix   = "access_tokens_revoked:"
+	sessionGenerationPrefix    = "session_generation:"
+	refreshJSONFamilyID        = "family_id"
+	refreshJSONUserID          = "user_id"
 )
+
+// refreshTokenFieldReader pulls one string or integer field out of a JSON
+// object. Field names are passed in, and whitespace around the colon is allowed.
+const refreshTokenFieldReader = `
+local function json_string(payload, field)
+  local _, _, found = string.find(payload, '"' .. field .. '"%s*:%s*"([^"]*)"')
+  return found
+end
+local function json_integer(payload, field)
+  local _, _, found = string.find(payload, '"' .. field .. '"%s*:%s*(%-?%d+)')
+  return found
+end
+`
 
 // refreshTokenKey generates the Redis key for a refresh token.
 func refreshTokenKey(tokenHash string) string {
 	return refreshTokenKeyPrefix + tokenHash
+}
+
+func refreshTokenConsumedKey(tokenHash string) string {
+	return refreshTokenConsumedPrefix + tokenHash
 }
 
 // userRefreshTokensKey generates the Redis key for user's token set.
@@ -111,35 +131,43 @@ func (c *refreshTokenCache) GetRefreshToken(ctx context.Context, tokenHash strin
 	}
 	var data service.RefreshTokenData
 	if err := json.Unmarshal([]byte(val), &data); err != nil {
-		return nil, fmt.Errorf("unmarshal refresh token data: %w", err)
+		return nil, fmt.Errorf("%w: unmarshal refresh token data: %v", service.ErrRefreshTokenCorrupt, err)
 	}
 	return &data, nil
 }
 
-// ConsumeRefreshToken atomically changes a live refresh-token record into a
-// consumed tombstone. Keeping the tombstone until the original TTL expires
-// lets the service identify replay and revoke the whole token family.
+const (
+	refreshConsumeMissing int64 = 0
+	refreshConsumeWon     int64 = 1
+	refreshConsumeReplay  int64 = 2
+)
+
+// ConsumeRefreshToken atomically marks a live refresh token as used.
+// The JSON value is left unchanged. Redis Lua numbers are IEEE-754 doubles,
+// so rewriting the body with cjson would corrupt int64 fields above 2^53.
+// Replay state lives in a sibling key that expires with the original token.
 func (c *refreshTokenCache) ConsumeRefreshToken(ctx context.Context, tokenHash string) (*service.RefreshTokenData, error) {
 	const script = `
 local value = redis.call('GET', KEYS[1])
 if not value then
   return {0, ''}
 end
-local data = cjson.decode(value)
-if data.consumed == true then
-  return {2, value}
-end
-data.consumed = true
-local encoded = cjson.encode(data)
 local ttl = redis.call('PTTL', KEYS[1])
+local claimed
 if ttl > 0 then
-  redis.call('PSETEX', KEYS[1], ttl, encoded)
+  claimed = redis.call('SET', KEYS[2], '1', 'PX', ttl, 'NX')
 else
-  redis.call('SET', KEYS[1], encoded)
+  claimed = redis.call('SET', KEYS[2], '1', 'NX')
 end
-return {1, encoded}`
+if claimed then
+  return {1, value}
+end
+return {2, value}`
 
-	result, err := c.rdb.Eval(ctx, script, []string{refreshTokenKey(tokenHash)}).Result()
+	result, err := c.rdb.Eval(ctx, script, []string{
+		refreshTokenKey(tokenHash),
+		refreshTokenConsumedKey(tokenHash),
+	}).Result()
 	if err != nil {
 		return nil, err
 	}
@@ -155,42 +183,43 @@ return {1, encoded}`
 	if !ok {
 		return nil, fmt.Errorf("unexpected refresh token consume payload")
 	}
-	if status == 0 {
+	if status == refreshConsumeMissing {
 		return nil, service.ErrRefreshTokenNotFound
+	}
+	if status != refreshConsumeWon && status != refreshConsumeReplay {
+		return nil, fmt.Errorf("unexpected refresh token consume status %d", status)
 	}
 	var data service.RefreshTokenData
 	if err := json.Unmarshal([]byte(encoded), &data); err != nil {
-		return nil, fmt.Errorf("unmarshal consumed refresh token data: %w", err)
+		return nil, fmt.Errorf("%w: unmarshal consumed refresh token data: %v", service.ErrRefreshTokenCorrupt, err)
 	}
-	// The stored tombstone always contains consumed=true. Expose whether this
-	// call won the transition (status=1) or observed an earlier consumer
-	// (status=2), rather than copying the persisted tombstone flag verbatim.
-	data.Consumed = status == 2
+	// A legacy record may already carry consumed=true inside the JSON.
+	// Newer records keep that flag false and use the sibling key instead.
+	data.Consumed = status == refreshConsumeReplay || data.Consumed
 	return &data, nil
 }
 
 func (c *refreshTokenCache) DeleteRefreshToken(ctx context.Context, tokenHash string) error {
-	key := refreshTokenKey(tokenHash)
-	return c.rdb.Del(ctx, key).Err()
+	return c.rdb.Del(ctx, refreshTokenKey(tokenHash), refreshTokenConsumedKey(tokenHash)).Err()
 }
 
 func (c *refreshTokenCache) DeleteUserRefreshTokens(ctx context.Context, userID int64) error {
-	const script = `
+	script := refreshTokenFieldReader + `
 local hashes = redis.call('SMEMBERS', KEYS[1])
 for _, hash in ipairs(hashes) do
   local token_key = ARGV[1] .. hash
   local value = redis.call('GET', token_key)
   if value then
-    local ok, data = pcall(cjson.decode, value)
-    if ok and data.family_id then
-      redis.call('SREM', ARGV[2] .. data.family_id, hash)
+    local family_id = json_string(value, ARGV[4])
+    if family_id then
+      redis.call('SREM', ARGV[2] .. family_id, hash)
     end
   end
-  redis.call('DEL', token_key)
+  redis.call('DEL', token_key, ARGV[3] .. hash)
 end
 redis.call('DEL', KEYS[1])
 return #hashes`
-	return c.rdb.Eval(ctx, script, []string{userRefreshTokensKey(userID)}, refreshTokenKeyPrefix, tokenFamilyPrefix).Err()
+	return c.rdb.Eval(ctx, script, []string{userRefreshTokensKey(userID)}, refreshTokenKeyPrefix, tokenFamilyPrefix, refreshTokenConsumedPrefix, refreshJSONFamilyID).Err()
 }
 
 func (c *refreshTokenCache) DeleteTokenFamily(ctx context.Context, familyID string) error {
@@ -207,26 +236,26 @@ func (c *refreshTokenCache) RevokeTokenFamily(ctx context.Context, familyID stri
 	if ttl <= 0 {
 		ttl = time.Minute
 	}
-	const script = `
+	script := refreshTokenFieldReader + `
 local hashes = redis.call('SMEMBERS', KEYS[1])
 redis.call('PSETEX', KEYS[2], ARGV[1], '1')
 for _, hash in ipairs(hashes) do
   local token_key = ARGV[2] .. hash
   local value = redis.call('GET', token_key)
   if value then
-    local ok, data = pcall(cjson.decode, value)
-    if ok and data.user_id then
-      redis.call('SREM', ARGV[3] .. tostring(data.user_id), hash)
+    local user_id = json_integer(value, ARGV[5])
+    if user_id then
+      redis.call('SREM', ARGV[3] .. user_id, hash)
     end
   end
-  redis.call('DEL', token_key)
+  redis.call('DEL', token_key, ARGV[4] .. hash)
 end
 redis.call('DEL', KEYS[1])
 return #hashes`
 	return c.rdb.Eval(ctx, script, []string{
 		tokenFamilyKey(familyID),
 		revokedTokenFamilyKey(familyID),
-	}, ttl.Milliseconds(), refreshTokenKeyPrefix, userRefreshTokensPrefix).Err()
+	}, ttl.Milliseconds(), refreshTokenKeyPrefix, userRefreshTokensPrefix, refreshTokenConsumedPrefix, refreshJSONUserID).Err()
 }
 
 func (c *refreshTokenCache) AddToUserTokenSet(ctx context.Context, userID int64, tokenHash string, ttl time.Duration) error {

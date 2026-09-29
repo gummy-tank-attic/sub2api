@@ -1863,8 +1863,8 @@ func (s *AuthService) RefreshTokenPair(ctx context.Context, refreshToken string)
 	// this avoids stranding a token when the user store is temporarily down.
 	data, err := s.refreshTokenCache.GetRefreshToken(ctx, tokenHash)
 	if err != nil {
-		if errors.Is(err, ErrRefreshTokenNotFound) {
-			return nil, ErrRefreshTokenInvalid
+		if errors.Is(err, ErrRefreshTokenNotFound) || errors.Is(err, ErrRefreshTokenCorrupt) {
+			return nil, s.invalidRefreshCredential(ctx, tokenHash, err)
 		}
 		logger.LegacyPrintf("service.auth", "[Auth] Error getting refresh token: %v", err)
 		return nil, ErrServiceUnavailable
@@ -1932,8 +1932,8 @@ func (s *AuthService) RefreshTokenPair(ctx context.Context, refreshToken string)
 
 	consumed, err := s.refreshTokenCache.ConsumeRefreshToken(ctx, tokenHash)
 	if err != nil {
-		if errors.Is(err, ErrRefreshTokenNotFound) {
-			return nil, ErrRefreshTokenInvalid
+		if errors.Is(err, ErrRefreshTokenNotFound) || errors.Is(err, ErrRefreshTokenCorrupt) {
+			return nil, s.invalidRefreshCredential(ctx, tokenHash, err)
 		}
 		return nil, ErrServiceUnavailable
 	}
@@ -1955,6 +1955,18 @@ func (s *AuthService) RefreshTokenPair(ctx context.Context, refreshToken string)
 		TokenPair: *pair,
 		UserRole:  user.Role,
 	}, nil
+}
+
+// invalidRefreshCredential maps a missing or damaged refresh token to 401.
+// A damaged record is deleted so later retries do not stay on 503.
+func (s *AuthService) invalidRefreshCredential(ctx context.Context, tokenHash string, err error) error {
+	if errors.Is(err, ErrRefreshTokenCorrupt) {
+		logger.LegacyPrintf("service.auth", "[Auth] Discarding corrupt refresh token: %v", err)
+		if delErr := s.refreshTokenCache.DeleteRefreshToken(ctx, tokenHash); delErr != nil {
+			logger.LegacyPrintf("service.auth", "[Auth] Failed to delete corrupt refresh token: %v", delErr)
+		}
+	}
+	return ErrRefreshTokenInvalid
 }
 
 // RevokeRefreshToken 撤销单个Refresh Token
