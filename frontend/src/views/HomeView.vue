@@ -3,13 +3,14 @@
   <div v-if="hasHomeContent" class="min-h-screen">
     <!-- iframe mode -->
     <iframe
-      v-if="isHomeContentUrl"
-      :src="homeContent.trim()"
+      v-if="homeContentUrl"
+      :src="homeContentUrl"
       class="h-screen w-full border-0"
+      sandbox="allow-scripts allow-forms allow-popups"
+      referrerpolicy="no-referrer"
       allowfullscreen
     ></iframe>
-    <!-- HTML mode - SECURITY: homeContent is admin-only setting, XSS risk is acceptable -->
-    <div v-else v-html="homeContent"></div>
+    <div v-else v-html="sanitizedHomeContent"></div>
   </div>
 
   <!-- Compact Home Page -->
@@ -499,6 +500,7 @@ import { useI18n } from 'vue-i18n'
 import { useAuthStore, useAppStore } from '@/stores'
 import LocaleSwitcher from '@/components/common/LocaleSwitcher.vue'
 import Icon from '@/components/icons/Icon.vue'
+import DOMPurify from 'dompurify'
 import { sanitizeUrl } from '@/utils/url'
 import { FeatureFlags, isFeatureFlagEnabled } from '@/utils/featureFlags'
 
@@ -514,14 +516,16 @@ const siteSubtitle = computed(() => appStore.cachedPublicSettings?.site_subtitle
 const docUrl = computed(() => sanitizeUrl(appStore.cachedPublicSettings?.doc_url || appStore.docUrl || ''))
 const homeContent = computed(() => appStore.cachedPublicSettings?.home_content || '')
 const hasHomeContent = computed(() => homeContent.value.trim().length > 0)
+const homeContentUrl = computed(() => {
+  return /^https?:\/\//i.test(homeContent.value.trim()) ? sanitizeUrl(homeContent.value) : ''
+})
+const sanitizedHomeContent = computed(() => DOMPurify.sanitize(homeContent.value, {
+  USE_PROFILES: { html: true },
+  FORBID_TAGS: ['form', 'input', 'button', 'textarea', 'select', 'style', 'iframe'],
+  FORBID_ATTR: ['style'],
+}))
 const compactHomeEnabled = computed(() => appStore.cachedPublicSettings?.compact_home_enabled === true)
 const modelPlazaEnabled = computed(() => isFeatureFlagEnabled(FeatureFlags.modelPlaza))
-
-// Check if homeContent is a URL (for iframe display)
-const isHomeContentUrl = computed(() => {
-  const content = homeContent.value.trim()
-  return content.startsWith('http://') || content.startsWith('https://')
-})
 
 // Theme
 const isDark = ref(document.documentElement.classList.contains('dark'))
