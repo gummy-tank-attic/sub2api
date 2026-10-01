@@ -1423,7 +1423,7 @@ func (s *AuthService) CheckAccessTokenRevocation(ctx context.Context, claims *JW
 	if claims.IssuedAt == nil {
 		return true, true, nil
 	}
-	return enforced, !claims.IssuedAt.Time.After(revokedAt), nil
+	return enforced, !claims.IssuedAt.After(revokedAt), nil
 }
 
 // CheckSessionGeneration verifies a derived security capability against the

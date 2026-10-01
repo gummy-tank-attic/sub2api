@@ -30,7 +30,7 @@ func TestPgDumperHelperProcess(t *testing.T) {
 }
 
 func pgDumperHelperCommand(ctx context.Context, mode string) *exec.Cmd {
-	cmd := exec.CommandContext(ctx, os.Args[0], "-test.run=^TestPgDumperHelperProcess$")
+	cmd := exec.CommandContext(ctx, os.Args[0], "-test.run=^TestPgDumperHelperProcess$") //nolint:gosec // G702: test-only helper executes this test binary
 	cmd.Env = append(os.Environ(), "GO_WANT_PG_DUMPER_HELPER=1", "PG_DUMPER_HELPER_MODE="+mode)
 	return cmd
 }

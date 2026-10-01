@@ -59,7 +59,7 @@ func TestRefreshTokenStoreAtomicallyCreatesPrimaryAndIndexes(t *testing.T) {
 func TestRefreshTokenStoreRejectsIndexFailureWithoutPrimaryRecord(t *testing.T) {
 	cache, mr := newRefreshTokenCacheSecurityTest(t)
 	ctx := context.Background()
-	mr.Set(userRefreshTokensKey(7), "wrong-type")
+	require.NoError(t, mr.Set(userRefreshTokensKey(7), "wrong-type"))
 
 	err := cache.StoreRefreshToken(ctx, "hash-b", testRefreshTokenData(7, "family-b", 0), time.Hour)
 	require.Error(t, err)
