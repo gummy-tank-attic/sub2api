@@ -2,6 +2,7 @@ import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import App from './App.vue'
 import router from './router'
+import { preloadInitialPublicRoute } from './router/initialPublicRoute'
 import i18n, { initI18n } from './i18n'
 import { useAppStore } from '@/stores/app'
 import { updateFavicon } from '@/utils/branding'
@@ -50,6 +51,7 @@ async function bootstrap() {
   }
   updateFavicon(appStore.siteLogo)
 
+  void preloadInitialPublicRoute(window.location.pathname)
   await initI18n()
 
   app.use(router)

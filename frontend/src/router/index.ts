@@ -13,6 +13,7 @@ import { useRoutePrefetch } from '@/composables/useRoutePrefetch'
 import { getSetupStatus } from '@/api/setup'
 import { resolveCompletedSetupRedirectPath } from './setupRedirect'
 import { resolveRouteDocumentTitle } from './title'
+import { initialPublicRouteLoaders } from './initialPublicRoute'
 
 /**
  * Route definitions with lazy loading
@@ -42,7 +43,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/login',
     name: 'Login',
-    component: () => import('@/views/auth/LoginView.vue'),
+    component: initialPublicRouteLoaders['/login'],
     meta: {
       requiresAuth: false,
       title: 'Login',
@@ -52,7 +53,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/register',
     name: 'Register',
-    component: () => import('@/views/auth/RegisterView.vue'),
+    component: initialPublicRouteLoaders['/register'],
     meta: {
       requiresAuth: false,
       title: 'Register',
