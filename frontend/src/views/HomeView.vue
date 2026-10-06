@@ -17,9 +17,9 @@
   <div
     v-else-if="compactHomeEnabled"
     data-testid="compact-home"
-    class="flex min-h-screen flex-col bg-gray-50 text-gray-900 dark:bg-dark-950 dark:text-white"
+    class="flex min-h-screen flex-col bg-slate-50 text-slate-900 dark:bg-dark-950 dark:text-white"
   >
-    <header class="border-b border-gray-200 px-4 py-4 sm:px-6 dark:border-dark-800">
+    <header class="border-b border-slate-200/80 px-4 py-4 sm:px-6 dark:border-dark-800">
       <nav class="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 sm:gap-4">
         <div class="flex min-w-0 flex-1 items-center gap-3">
           <img
@@ -30,27 +30,8 @@
         </div>
         <div class="flex max-w-full shrink-0 flex-wrap items-center justify-end gap-2">
           <LocaleSwitcher />
-          <a
-            v-if="docUrl"
-            :href="docUrl"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 dark:text-dark-400 dark:hover:bg-dark-800"
-            :title="t('home.viewDocs')"
-          >
-            <Icon name="book" size="md" />
-          </a>
-          <router-link
-            v-if="showModelPlazaEntry"
-            to="/model-plaza"
-            class="flex h-10 shrink-0 items-center gap-1.5 rounded-lg px-2.5 text-sm font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-dark-400 dark:hover:bg-dark-800 dark:hover:text-white"
-            :title="t('nav.modelPlaza')"
-          >
-            <Icon name="grid" size="md" />
-            <span class="hidden sm:inline">{{ t('nav.modelPlaza') }}</span>
-          </router-link>
           <button
-            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 dark:text-dark-400 dark:hover:bg-dark-800"
+            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 dark:text-dark-400 dark:hover:bg-dark-800"
             :title="isDark ? t('home.switchToLight') : t('home.switchToDark')"
             @click="toggleTheme"
           >
@@ -59,7 +40,7 @@
           </button>
           <router-link
             :to="isAuthenticated ? dashboardPath : '/login'"
-            class="inline-flex min-h-10 shrink-0 items-center justify-center rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-200"
+            class="inline-flex min-h-10 shrink-0 items-center justify-center rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
           >
             {{ isAuthenticated ? t('home.dashboard') : t('home.login') }}
           </router-link>
@@ -69,7 +50,6 @@
 
     <main class="flex min-w-0 flex-1 items-center justify-center px-4 py-16 sm:px-6">
       <div class="min-w-0 max-w-2xl text-center">
-        <!-- Pure Text Wordmark: Transparent Background, Elevated Design -->
         <div class="mx-auto mb-6 flex justify-center">
           <img
             src="/logo.svg"
@@ -78,165 +58,136 @@
           />
         </div>
         <h1 class="sr-only">{{ siteName }}</h1>
-        <h2 class="mt-2 text-2xl font-bold text-gray-900 dark:text-white sm:text-3xl sm:whitespace-nowrap">One API. Multiple AI Models.</h2>
-        <p class="mt-3 whitespace-pre-wrap [overflow-wrap:anywhere] text-base text-gray-600 dark:text-dark-300">Unified access, smart routing, and usage-based billing.</p>
+        <h2 class="mt-2 text-2xl font-bold text-slate-900 dark:text-white sm:text-3xl sm:whitespace-nowrap">One API. Multiple AI Models.</h2>
+        <p class="mt-3 whitespace-pre-wrap [overflow-wrap:anywhere] text-base text-slate-600 dark:text-dark-300">Unified access, smart routing, and usage-based billing.</p>
         <router-link
           :to="isAuthenticated ? dashboardPath : '/login'"
-          class="mt-8 inline-flex min-h-10 items-center justify-center rounded-lg bg-primary-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-primary-700"
+          class="mt-8 inline-flex min-h-10 items-center justify-center rounded-xl bg-[#be123c] px-6 py-2.5 text-sm font-semibold text-white shadow-md shadow-[#be123c]/20 hover:bg-[#9f1239] transition-all"
         >
           {{ isAuthenticated ? t('home.goToDashboard') : 'Get Started' }}
         </router-link>
       </div>
     </main>
 
-    <footer class="min-w-0 border-t border-gray-200 px-4 py-6 text-center text-xs text-gray-500 sm:px-6 dark:border-dark-800 dark:text-dark-400">
+    <footer class="min-w-0 border-t border-slate-200/80 px-4 py-6 text-center text-xs text-slate-500 sm:px-6 dark:border-dark-800 dark:text-dark-400">
       <div>&copy; {{ currentYear }} {{ siteName }}. Operated by Helix Tech LLC. All rights reserved.</div>
-      <div class="mt-2 flex flex-wrap justify-center gap-4 text-xs text-gray-500 dark:text-dark-400">
-        <router-link to="/legal/terms" class="transition-colors hover:text-gray-900 dark:hover:text-white">Terms of Service</router-link>
-        <span class="text-gray-300 dark:text-dark-700">&bull;</span>
-        <router-link to="/legal/privacy" class="transition-colors hover:text-gray-900 dark:hover:text-white">Privacy Policy</router-link>
-        <span class="text-gray-300 dark:text-dark-700">&bull;</span>
-        <router-link to="/legal/refund" class="transition-colors hover:text-gray-900 dark:hover:text-white">Refund Policy</router-link>
+      <div class="mt-2 flex flex-wrap justify-center gap-4 text-xs text-slate-500 dark:text-dark-400">
+        <router-link to="/legal/terms" class="transition-colors hover:text-slate-900 dark:hover:text-white">Terms of Service</router-link>
+        <span class="text-slate-300 dark:text-dark-700">&bull;</span>
+        <router-link to="/legal/privacy" class="transition-colors hover:text-slate-900 dark:hover:text-white">Privacy Policy</router-link>
+        <span class="text-slate-300 dark:text-dark-700">&bull;</span>
+        <router-link to="/legal/refund" class="transition-colors hover:text-slate-900 dark:hover:text-white">Refund Policy</router-link>
       </div>
     </footer>
   </div>
 
-  <!-- Default Home Page -->
+  <!-- Default Home Page (Option A: Stripe Editorial Warm Alabaster + Ruby Accent) -->
   <div
     v-else
-    class="relative flex min-h-screen flex-col overflow-hidden bg-gradient-to-br from-gray-50 via-primary-50/30 to-gray-100 dark:from-dark-950 dark:via-dark-900 dark:to-dark-950"
+    class="stripe-canvas relative flex min-h-screen flex-col overflow-hidden text-slate-800 antialiased dark:bg-dark-950 dark:text-white"
   >
-    <!-- Background Decorations -->
-    <div class="pointer-events-none absolute inset-0 overflow-hidden">
-      <div
-        class="absolute -right-40 -top-40 h-96 w-96 rounded-full bg-primary-400/20 blur-3xl"
-      ></div>
-      <div
-        class="absolute -bottom-40 -left-40 h-96 w-96 rounded-full bg-primary-500/15 blur-3xl"
-      ></div>
-      <div
-        class="absolute left-1/3 top-1/4 h-72 w-72 rounded-full bg-primary-300/10 blur-3xl"
-      ></div>
-      <div
-        class="absolute bottom-1/4 right-1/4 h-64 w-64 rounded-full bg-primary-400/10 blur-3xl"
-      ></div>
-      <div
-        class="absolute inset-0 bg-[linear-gradient(rgba(20,184,166,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(20,184,166,0.03)_1px,transparent_1px)] bg-[size:64px_64px]"
-      ></div>
-    </div>
-
-    <!-- Header -->
-    <header class="relative z-20 px-6 py-4">
-      <nav class="mx-auto flex max-w-6xl items-center justify-between">
-        <!-- Left: Clean spacing or subtle home anchor -->
-        <div class="flex items-center">
+    <!-- Header: Elevated Frosted Navbar -->
+    <header class="sticky top-0 z-50 border-b border-slate-200/60 bg-white/80 px-6 py-3.5 backdrop-blur-md dark:border-dark-800/60 dark:bg-dark-900/80">
+      <nav class="mx-auto flex max-w-7xl items-center justify-between">
+        <!-- Left: Wordmark Logo & Status -->
+        <div class="flex items-center gap-6">
+          <router-link to="/" class="flex items-center gap-2 transition-transform hover:scale-[1.01] duration-150">
+            <img
+              src="/logo.svg"
+              :alt="siteName"
+              class="h-7 w-auto max-w-[160px] object-contain"
+            />
+          </router-link>
+          <div class="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-slate-100/80 px-2.5 py-0.5 text-[11px] font-medium text-slate-600 border border-slate-200/50 dark:bg-dark-800 dark:text-dark-300 dark:border-dark-700">
+            <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+            <span>Gateway Active</span>
+          </div>
         </div>
 
-        <!-- Nav Actions -->
-        <div class="flex items-center gap-3">
-          <!-- Language Switcher -->
+        <!-- Right: Actions -->
+        <div class="flex items-center gap-4 text-sm">
           <LocaleSwitcher />
-
-          <!-- Doc Link -->
-          <a
-            v-if="docUrl"
-            :href="docUrl"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:text-dark-400 dark:hover:bg-dark-800 dark:hover:text-white"
-            :title="t('home.viewDocs')"
-          >
-            <Icon name="book" size="md" />
-          </a>
-
-          <!-- Model Plaza Link -->
-          <router-link
-            v-if="showModelPlazaEntry"
-            to="/model-plaza"
-            class="inline-flex items-center gap-1.5 rounded-lg p-2 text-sm text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:text-dark-400 dark:hover:bg-dark-800 dark:hover:text-white"
-            :title="t('nav.modelPlaza')"
-          >
-            <Icon name="grid" size="md" />
-            <span class="hidden sm:inline">{{ t('nav.modelPlaza') }}</span>
-          </router-link>
-
-          <!-- Theme Toggle -->
+          
           <button
             @click="toggleTheme"
-            class="rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:text-dark-400 dark:hover:bg-dark-800 dark:hover:text-white"
+            class="rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:text-dark-400 dark:hover:bg-dark-800 dark:hover:text-white"
             :title="isDark ? t('home.switchToLight') : t('home.switchToDark')"
           >
             <Icon v-if="isDark" name="sun" size="md" />
             <Icon v-else name="moon" size="md" />
           </button>
 
-          <!-- Login / Dashboard Button -->
           <router-link
             v-if="isAuthenticated"
             :to="dashboardPath"
-            class="inline-flex items-center gap-1.5 rounded-full bg-gray-900 py-1 pl-1 pr-2.5 transition-colors hover:bg-gray-800 dark:bg-gray-800 dark:hover:bg-gray-700"
+            class="inline-flex items-center justify-center rounded-lg bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-slate-800 transition-all dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
           >
-            <span
-              class="flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-br from-primary-400 to-primary-600 text-[10px] font-semibold text-white"
-            >
-              {{ userInitial }}
-            </span>
-            <span class="text-xs font-medium text-white">{{ t('home.dashboard') }}</span>
-            <svg
-              class="h-3 w-3 text-gray-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25"
-              />
-            </svg>
+            {{ t('home.dashboard') }} &rarr;
           </router-link>
-          <router-link
-            v-else
-            to="/login"
-            class="inline-flex items-center rounded-full bg-gray-900 px-3 py-1 text-xs font-medium text-white transition-colors hover:bg-gray-800 dark:bg-gray-800 dark:hover:bg-gray-700"
-          >
-            {{ t('home.login') }}
-          </router-link>
+          <div v-else class="flex items-center gap-4">
+            <router-link
+              to="/login"
+              class="font-medium text-slate-600 hover:text-slate-900 transition-colors dark:text-dark-300 dark:hover:text-white"
+            >
+              Sign In
+            </router-link>
+            <router-link
+              to="/login"
+              class="inline-flex items-center justify-center rounded-lg bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-slate-800 transition-all dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
+            >
+              Console &rarr;
+            </router-link>
+          </div>
         </div>
       </nav>
     </header>
 
-    <!-- Main Content -->
-    <main class="relative z-10 flex-1 px-6 py-16">
-      <div class="mx-auto max-w-6xl xl:max-w-7xl">
+    <!-- Main Content Area -->
+    <main class="relative z-10 flex-1 flex flex-col justify-center px-6 py-10 lg:py-16">
+      <div class="mx-auto max-w-7xl w-full space-y-12 lg:space-y-14">
+        
         <!-- Hero Section - Left/Right Layout -->
-        <div class="mb-12 flex flex-col items-center justify-between gap-10 lg:flex-row lg:gap-12 xl:gap-16">
+        <div class="grid items-center gap-10 lg:grid-cols-12 lg:gap-14">
           <!-- Left: Text Content -->
-          <div class="min-w-0 flex-1 text-center lg:text-left lg:flex-[1.15]">
-            <!-- Brand Wordmark: FXVIΛ positioned above AI API Gateway -->
+          <div class="lg:col-span-7 text-center lg:text-left">
             <div class="mb-5 flex justify-center lg:justify-start">
               <img
                 src="/logo.svg"
                 :alt="siteName"
-                class="h-11 w-auto max-w-[240px] object-contain sm:h-13 sm:max-w-[280px] drop-shadow-sm transition-transform hover:scale-105 duration-300"
+                class="h-10 w-auto max-w-[240px] object-contain sm:h-12 sm:max-w-[280px] drop-shadow-xs transition-transform hover:scale-105 duration-300"
               />
             </div>
 
             <h1
-              class="mb-4 text-2xl sm:text-3xl lg:text-[34px] xl:text-[38px] font-bold tracking-tight text-gray-900 dark:text-white lg:whitespace-nowrap leading-tight"
+              class="heading-font mb-4 text-2xl sm:text-3xl lg:text-[37px] xl:text-[41px] font-bold tracking-tight text-slate-900 dark:text-white lg:whitespace-nowrap leading-[1.14]"
             >
               One API. Multiple AI Models.
             </h1>
-            <p class="mb-8 text-base text-gray-600 dark:text-dark-300 md:text-lg leading-relaxed">
+            <p class="mb-6 text-base text-slate-600 dark:text-dark-300 md:text-lg leading-relaxed max-w-xl mx-auto lg:mx-0">
               Unified access, smart routing, and usage-based billing.
             </p>
 
-            <!-- CTA Button -->
-            <div>
+            <!-- Feature Tags -->
+            <div class="mb-8 flex flex-wrap items-center justify-center lg:justify-start gap-2.5 text-xs font-medium text-slate-700 dark:text-dark-200">
+              <span class="inline-flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 shadow-sm border border-slate-200/80 dark:bg-dark-900 dark:border-dark-700">
+                <span class="h-1.5 w-1.5 rounded-full bg-slate-800 dark:bg-slate-200"></span>
+                Unified API
+              </span>
+              <span class="inline-flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 shadow-sm border border-slate-200/80 dark:bg-dark-900 dark:border-dark-700">
+                <span class="h-1.5 w-1.5 rounded-full bg-slate-800 dark:bg-slate-200"></span>
+                Smart Routing
+              </span>
+              <span class="inline-flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 shadow-sm border border-slate-200/80 dark:bg-dark-900 dark:border-dark-700">
+                <span class="h-1.5 w-1.5 rounded-full bg-slate-800 dark:bg-slate-200"></span>
+                Pay As You Go
+              </span>
+            </div>
+
+            <!-- CTA Button (Deep Ruby Carmine) -->
+            <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
               <router-link
                 :to="isAuthenticated ? dashboardPath : '/login'"
-                class="btn btn-primary px-8 py-3 text-base shadow-lg shadow-primary-500/30"
+                class="inline-flex items-center justify-center rounded-xl bg-[#be123c] hover:bg-[#9f1239] px-7 py-3 text-sm font-semibold text-white shadow-md shadow-[#be123c]/20 transition-all active:scale-[0.98]"
               >
                 {{ isAuthenticated ? t('home.goToDashboard') : 'Get Started' }}
                 <Icon name="arrowRight" size="md" class="ml-2" :stroke-width="2" />
@@ -244,37 +195,43 @@
             </div>
           </div>
 
-          <!-- Right: Terminal Animation -->
-          <div class="flex flex-1 justify-center lg:justify-end flex-shrink-0">
-            <div class="terminal-container">
-              <div class="terminal-window">
-                <!-- Window header -->
-                <div class="terminal-header">
-                  <div class="terminal-buttons">
-                    <span class="btn-close"></span>
-                    <span class="btn-minimize"></span>
-                    <span class="btn-maximize"></span>
-                  </div>
-                  <span class="terminal-title">terminal</span>
+          <!-- Right: Light Mode Developer Inspector Panel (Seamless, No Black Hole) -->
+          <div class="lg:col-span-5 flex justify-center lg:justify-end">
+            <div class="inspector-panel w-full max-w-[460px] rounded-2xl overflow-hidden font-mono text-xs">
+              <!-- Window Header -->
+              <div class="flex items-center justify-between border-b border-slate-100 bg-slate-50/80 px-4 py-3 dark:border-dark-800 dark:bg-dark-900">
+                <div class="flex items-center gap-2">
+                  <div class="h-2.5 w-2.5 rounded-full bg-slate-300 dark:bg-dark-700"></div>
+                  <div class="h-2.5 w-2.5 rounded-full bg-slate-300 dark:bg-dark-700"></div>
+                  <div class="h-2.5 w-2.5 rounded-full bg-slate-300 dark:bg-dark-700"></div>
+                  <span class="ml-2 text-[11px] text-slate-500 font-sans font-medium dark:text-dark-400">api.fxvia.com</span>
                 </div>
-                <!-- Terminal content -->
-                <div class="terminal-body">
-                  <div class="code-line line-1">
-                    <span class="code-prompt">$</span>
-                    <span class="code-cmd">curl</span>
-                    <span class="code-flag">-X POST</span>
-                    <span class="code-url">/v1/messages</span>
+                <div class="flex items-center gap-1.5 text-[10px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full font-mono dark:bg-emerald-950/60 dark:text-emerald-400 dark:border-emerald-800/60">
+                  <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                  <span>200 OK</span>
+                </div>
+              </div>
+
+              <!-- Request Area -->
+              <div class="p-5 space-y-3 leading-relaxed bg-white dark:bg-dark-950 text-slate-700 dark:text-dark-200">
+                <div class="flex items-start">
+                  <span class="text-rose-600 mr-2 font-semibold">$</span>
+                  <span class="text-slate-900 dark:text-white font-medium">curl -X POST https://api.fxvia.com/v1/chat/completions \</span>
+                </div>
+                <div class="pl-4 text-slate-600 dark:text-dark-400 space-y-1">
+                  <div>-H <span class="text-slate-800 dark:text-dark-200 font-medium">"Authorization: Bearer sk-fxvia-***"</span> \</div>
+                  <div>-H <span class="text-slate-800 dark:text-dark-200 font-medium">"Content-Type: application/json"</span> \</div>
+                  <div>-d <span class="text-rose-700 dark:text-rose-400">'{"model": "claude-3-5-sonnet", ...}'</span></div>
+                </div>
+
+                <!-- Response Inset -->
+                <div class="rounded-xl bg-slate-50 border border-slate-200/70 p-3.5 space-y-1 mt-2 dark:bg-dark-900 dark:border-dark-800">
+                  <div class="flex items-center justify-between text-[11px]">
+                    <span class="text-emerald-700 dark:text-emerald-400 font-semibold font-mono">HTTP/2 200 OK</span>
+                    <span class="text-slate-400 dark:text-dark-500 font-mono text-[10px]">latency: 124ms</span>
                   </div>
-                  <div class="code-line line-2">
-                    <span class="code-comment"># Routing to upstream...</span>
-                  </div>
-                  <div class="code-line line-3">
-                    <span class="code-success">200 OK</span>
-                    <span class="code-response">{ "content": "Hello!" }</span>
-                  </div>
-                  <div class="code-line line-4">
-                    <span class="code-prompt">$</span>
-                    <span class="cursor"></span>
+                  <div class="text-[11px] text-slate-700 dark:text-dark-300 font-mono">
+                    { "content": "Hello! Ready to assist." }
                   </div>
                 </div>
               </div>
@@ -282,79 +239,72 @@
           </div>
         </div>
 
-        <!-- Feature Tags - Centered -->
-        <div class="mb-12 flex flex-wrap items-center justify-center gap-4 md:gap-6">
-          <div
-            class="inline-flex items-center gap-2.5 rounded-full border border-gray-200/50 bg-white/80 px-5 py-2.5 shadow-sm backdrop-blur-sm dark:border-dark-700/50 dark:bg-dark-800/80"
-          >
-            <Icon name="swap" size="sm" class="text-primary-500" />
-            <span class="text-sm font-medium text-gray-700 dark:text-dark-200">Unified API</span>
-          </div>
-          <div
-            class="inline-flex items-center gap-2.5 rounded-full border border-gray-200/50 bg-white/80 px-5 py-2.5 shadow-sm backdrop-blur-sm dark:border-dark-700/50 dark:bg-dark-800/80"
-          >
-            <Icon name="shield" size="sm" class="text-primary-500" />
-            <span class="text-sm font-medium text-gray-700 dark:text-dark-200">Smart Routing</span>
-          </div>
-          <div
-            class="inline-flex items-center gap-2.5 rounded-full border border-gray-200/50 bg-white/80 px-5 py-2.5 shadow-sm backdrop-blur-sm dark:border-dark-700/50 dark:bg-dark-800/80"
-          >
-            <Icon name="chart" size="sm" class="text-primary-500" />
-            <span class="text-sm font-medium text-gray-700 dark:text-dark-200">Pay As You Go</span>
-          </div>
-        </div>
-
-        <!-- Features Grid -->
-        <div class="mb-12 grid gap-6 md:grid-cols-3">
-          <!-- Feature 1: One API Key -->
-          <div
-            class="group rounded-2xl border border-gray-200/50 bg-white/60 p-6 backdrop-blur-sm transition-all duration-300 hover:shadow-xl hover:shadow-primary-500/10 dark:border-dark-700/50 dark:bg-dark-800/60"
-          >
-            <div
-              class="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-500/30 transition-transform group-hover:scale-110"
-            >
-              <Icon name="key" size="lg" class="text-white" />
+        <!-- Three Core Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 pt-4">
+          <!-- Card 1: One API Key -->
+          <div class="stripe-card rounded-2xl p-7 flex flex-col justify-between dark:bg-dark-900 dark:border-dark-800">
+            <div>
+              <div class="flex items-center justify-between">
+                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-50 border border-slate-200 text-slate-700 dark:bg-dark-800 dark:border-dark-700 dark:text-dark-200">
+                  <Icon name="key" size="md" />
+                </div>
+                <span class="text-[10px] font-mono text-slate-400 font-medium tracking-wider uppercase dark:text-dark-500">FEATURE 01</span>
+              </div>
+              <h3 class="mt-5 text-lg font-bold text-slate-900 dark:text-white tracking-tight heading-font">
+                One API Key
+              </h3>
+              <p class="mt-2 text-sm text-slate-600 dark:text-dark-300 leading-relaxed">
+                Access supported AI models with a single key.
+              </p>
             </div>
-            <h3 class="mb-2 text-lg font-semibold text-gray-900 dark:text-white">
-              One API Key
-            </h3>
-            <p class="text-sm leading-relaxed text-gray-600 dark:text-dark-400">
-              Access supported AI models with a single key.
-            </p>
+            <div class="mt-6 pt-4 border-t border-slate-100 dark:border-dark-800 text-xs text-slate-400 dark:text-dark-500 font-medium flex items-center gap-2">
+              <span class="h-1.5 w-1.5 rounded-full bg-slate-300 dark:bg-dark-600"></span>
+              <span>Single integration &bull; Unified token</span>
+            </div>
           </div>
 
-          <!-- Feature 2: Smart Routing -->
-          <div
-            class="group rounded-2xl border border-gray-200/50 bg-white/60 p-6 backdrop-blur-sm transition-all duration-300 hover:shadow-xl hover:shadow-primary-500/10 dark:border-dark-700/50 dark:bg-dark-800/60"
-          >
-            <div
-              class="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 shadow-lg shadow-primary-500/30 transition-transform group-hover:scale-110"
-            >
-              <Icon name="swap" size="lg" class="text-white" />
+          <!-- Card 2: Smart Routing -->
+          <div class="stripe-card rounded-2xl p-7 flex flex-col justify-between dark:bg-dark-900 dark:border-dark-800">
+            <div>
+              <div class="flex items-center justify-between">
+                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-50 border border-slate-200 text-slate-700 dark:bg-dark-800 dark:border-dark-700 dark:text-dark-200">
+                  <Icon name="swap" size="md" />
+                </div>
+                <span class="text-[10px] font-mono text-slate-400 font-medium tracking-wider uppercase dark:text-dark-500">FEATURE 02</span>
+              </div>
+              <h3 class="mt-5 text-lg font-bold text-slate-900 dark:text-white tracking-tight heading-font">
+                Smart Routing
+              </h3>
+              <p class="mt-2 text-sm text-slate-600 dark:text-dark-300 leading-relaxed">
+                Automatic routing and failover across upstream providers.
+              </p>
             </div>
-            <h3 class="mb-2 text-lg font-semibold text-gray-900 dark:text-white">
-              Smart Routing
-            </h3>
-            <p class="text-sm leading-relaxed text-gray-600 dark:text-dark-400">
-              Automatic routing and failover across upstream providers.
-            </p>
+            <div class="mt-6 pt-4 border-t border-slate-100 dark:border-dark-800 text-xs text-slate-400 dark:text-dark-500 font-medium flex items-center gap-2">
+              <span class="h-1.5 w-1.5 rounded-full bg-slate-300 dark:bg-dark-600"></span>
+              <span>High availability &bull; Multi-region redundancy</span>
+            </div>
           </div>
 
-          <!-- Feature 3: Pay As You Go -->
-          <div
-            class="group rounded-2xl border border-gray-200/50 bg-white/60 p-6 backdrop-blur-sm transition-all duration-300 hover:shadow-xl hover:shadow-primary-500/10 dark:border-dark-700/50 dark:bg-dark-800/60"
-          >
-            <div
-              class="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 shadow-lg shadow-purple-500/30 transition-transform group-hover:scale-110"
-            >
-              <Icon name="chart" size="lg" class="text-white" />
+          <!-- Card 3: Pay As You Go -->
+          <div class="stripe-card rounded-2xl p-7 flex flex-col justify-between dark:bg-dark-900 dark:border-dark-800">
+            <div>
+              <div class="flex items-center justify-between">
+                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-50 border border-slate-200 text-slate-700 dark:bg-dark-800 dark:border-dark-700 dark:text-dark-200">
+                  <Icon name="chart" size="md" />
+                </div>
+                <span class="text-[10px] font-mono text-slate-400 font-medium tracking-wider uppercase dark:text-dark-500">FEATURE 03</span>
+              </div>
+              <h3 class="mt-5 text-lg font-bold text-slate-900 dark:text-white tracking-tight heading-font">
+                Pay As You Go
+              </h3>
+              <p class="mt-2 text-sm text-slate-600 dark:text-dark-300 leading-relaxed">
+                Pay for what you use. Track usage and costs.
+              </p>
             </div>
-            <h3 class="mb-2 text-lg font-semibold text-gray-900 dark:text-white">
-              Pay As You Go
-            </h3>
-            <p class="text-sm leading-relaxed text-gray-600 dark:text-dark-400">
-              Pay for what you use. Track usage and costs.
-            </p>
+            <div class="mt-6 pt-4 border-t border-slate-100 dark:border-dark-800 text-xs text-slate-400 dark:text-dark-500 font-medium flex items-center gap-2">
+              <span class="h-1.5 w-1.5 rounded-full bg-slate-300 dark:bg-dark-600"></span>
+              <span>Transparent metrics &bull; Real-time metering</span>
+            </div>
           </div>
         </div>
 
@@ -362,35 +312,23 @@
     </main>
 
     <!-- Footer -->
-    <footer class="relative z-10 border-t border-gray-200/60 bg-white/40 px-6 py-8 backdrop-blur-sm dark:border-dark-800/60 dark:bg-dark-900/40">
-      <div class="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 text-center sm:flex-row sm:text-left">
-        <!-- Minimal Corporate Identity -->
+    <footer class="relative z-10 border-t border-slate-200/60 bg-white/70 px-6 py-6 text-xs text-slate-500 backdrop-blur-sm dark:border-dark-800/60 dark:bg-dark-900/70 dark:text-dark-400">
+      <div class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 text-center sm:flex-row sm:text-left">
         <div>
-          <p class="text-sm text-gray-500 dark:text-dark-400">
-            &copy; {{ currentYear }} {{ siteName }}. Operated by Helix Tech LLC. All rights reserved.
-          </p>
+          &copy; {{ currentYear }} {{ siteName }}. Operated by Helix Tech LLC. All rights reserved.
         </div>
-
-        <!-- Legal Links -->
-        <div class="flex flex-wrap items-center justify-center gap-5 text-sm text-gray-500 dark:text-dark-400">
-          <router-link to="/legal/terms" class="transition-colors hover:text-gray-900 dark:hover:text-white">
+        <div class="flex flex-wrap items-center justify-center gap-6">
+          <router-link to="/legal/terms" class="transition-colors hover:text-slate-900 dark:hover:text-white">
             Terms of Service
           </router-link>
-          <router-link to="/legal/privacy" class="transition-colors hover:text-gray-900 dark:hover:text-white">
+          <span class="text-slate-300 dark:text-dark-700">&bull;</span>
+          <router-link to="/legal/privacy" class="transition-colors hover:text-slate-900 dark:hover:text-white">
             Privacy Policy
           </router-link>
-          <router-link to="/legal/refund" class="transition-colors hover:text-gray-900 dark:hover:text-white">
+          <span class="text-slate-300 dark:text-dark-700">&bull;</span>
+          <router-link to="/legal/refund" class="transition-colors hover:text-slate-900 dark:hover:text-white">
             Refund Policy
           </router-link>
-          <a
-            v-if="docUrl"
-            :href="docUrl"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="transition-colors hover:text-gray-900 dark:hover:text-white"
-          >
-            {{ t('home.docs') }}
-          </a>
         </div>
       </div>
     </footer>
@@ -405,17 +343,15 @@ import LocaleSwitcher from '@/components/common/LocaleSwitcher.vue'
 import Icon from '@/components/icons/Icon.vue'
 import DOMPurify from 'dompurify'
 import { sanitizeUrl } from '@/utils/url'
-import { FeatureFlags, isFeatureFlagEnabled } from '@/utils/featureFlags'
 
 const { t } = useI18n()
 
 const authStore = useAuthStore()
 const appStore = useAppStore()
 
-// Site settings - directly from appStore (already initialized from injected config)
+// Site settings
 const siteName = computed(() => appStore.cachedPublicSettings?.site_name || appStore.siteName || 'FXVIA')
 const siteLogo = computed(() => sanitizeUrl(appStore.cachedPublicSettings?.site_logo || appStore.siteLogo || '', { allowRelative: true, allowDataUrl: true }))
-const docUrl = computed(() => sanitizeUrl(appStore.cachedPublicSettings?.doc_url || appStore.docUrl || ''))
 const homeContent = computed(() => appStore.cachedPublicSettings?.home_content || '')
 const hasHomeContent = computed(() => homeContent.value.trim().length > 0)
 const homeContentUrl = computed(() => {
@@ -427,28 +363,14 @@ const sanitizedHomeContent = computed(() => DOMPurify.sanitize(homeContent.value
   FORBID_ATTR: ['style'],
 }))
 const compactHomeEnabled = computed(() => appStore.cachedPublicSettings?.compact_home_enabled === true)
-const modelPlazaEnabled = computed(() => isFeatureFlagEnabled(FeatureFlags.modelPlaza))
 
 // Theme
 const isDark = ref(document.documentElement.classList.contains('dark'))
 
-// GitHub URL
-
 // Auth state
 const isAuthenticated = computed(() => authStore.isAuthenticated)
-const modelPlazaRequiresAuth = computed(
-  () => appStore.cachedPublicSettings?.model_plaza_require_auth === true,
-)
-const showModelPlazaEntry = computed(
-  () => modelPlazaEnabled.value && (isAuthenticated.value || !modelPlazaRequiresAuth.value),
-)
 const isAdmin = computed(() => authStore.isAdmin)
 const dashboardPath = computed(() => isAdmin.value ? '/admin/dashboard' : '/dashboard')
-const userInitial = computed(() => {
-  const user = authStore.user
-  if (!user || !user.email) return ''
-  return user.email.charAt(0).toUpperCase()
-})
 
 // Current year for footer
 const currentYear = computed(() => new Date().getFullYear())
@@ -474,11 +396,7 @@ function initTheme() {
 
 onMounted(() => {
   initTheme()
-
-  // Check auth state
   authStore.checkAuth()
-
-  // Ensure public settings are loaded (will use cache if already loaded from injected config)
   if (!appStore.publicSettingsLoaded) {
     appStore.fetchPublicSettings()
   }
@@ -486,164 +404,61 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* Terminal Container */
-.terminal-container {
-  position: relative;
-  display: inline-block;
+.heading-font {
+  font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif;
 }
 
-/* Terminal Window */
-.terminal-window {
-  width: 420px;
-  background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
-  border-radius: 14px;
-  box-shadow:
-    0 25px 50px -12px rgba(0, 0, 0, 0.4),
-    0 0 0 1px rgba(255, 255, 255, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  overflow: hidden;
-  transform: perspective(1000px) rotateX(2deg) rotateY(-2deg);
-  transition: transform 0.3s ease;
+.stripe-canvas {
+  background-color: #f8fafc;
+  background-image: 
+    radial-gradient(ellipse at 50% -20%, rgba(190, 18, 60, 0.035) 0%, transparent 60%),
+    linear-gradient(rgba(15, 23, 42, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(15, 23, 42, 0.02) 1px, transparent 1px);
+  background-size: 100% 100%, 40px 40px, 40px 40px;
 }
 
-.terminal-window:hover {
-  transform: perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(-4px);
+:deep(.dark) .stripe-canvas {
+  background-color: #07090e;
+  background-image: 
+    radial-gradient(ellipse at 50% -20%, rgba(225, 29, 72, 0.12) 0%, transparent 60%),
+    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
 }
 
-/* Terminal Header */
-.terminal-header {
-  display: flex;
-  align-items: center;
-  padding: 12px 16px;
-  background: rgba(30, 41, 59, 0.8);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+.stripe-card {
+  background: #ffffff;
+  border: 1px solid rgba(203, 213, 225, 0.6);
+  box-shadow: 
+    0 1px 3px 0 rgba(15, 23, 42, 0.02),
+    0 10px 24px -4px rgba(15, 23, 42, 0.03);
+  transition: all 0.25s ease;
 }
 
-.terminal-buttons {
-  display: flex;
-  gap: 8px;
+.stripe-card:hover {
+  border-color: rgba(148, 163, 184, 0.8);
+  box-shadow: 
+    0 2px 4px 0 rgba(15, 23, 42, 0.02),
+    0 16px 32px -4px rgba(15, 23, 42, 0.05);
+  transform: translateY(-2px);
 }
 
-.terminal-buttons span {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
+:deep(.dark) .stripe-card {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
 }
 
-.btn-close {
-  background: #ef4444;
-}
-.btn-minimize {
-  background: #eab308;
-}
-.btn-maximize {
-  background: #22c55e;
+.inspector-panel {
+  background: #ffffff;
+  border: 1px solid rgba(203, 213, 225, 0.7);
+  box-shadow: 
+    0 4px 6px -1px rgba(15, 23, 42, 0.02),
+    0 20px 40px -8px rgba(15, 23, 42, 0.05);
 }
 
-.terminal-title {
-  flex: 1;
-  text-align: center;
-  font-size: 12px;
-  font-family: ui-monospace, monospace;
-  color: #64748b;
-  margin-right: 52px;
-}
-
-/* Terminal Body */
-.terminal-body {
-  padding: 20px 24px;
-  font-family: ui-monospace, 'Fira Code', monospace;
-  font-size: 14px;
-  line-height: 2;
-}
-
-.code-line {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  opacity: 0;
-  animation: line-appear 0.5s ease forwards;
-}
-
-.line-1 {
-  animation-delay: 0.3s;
-}
-.line-2 {
-  animation-delay: 1s;
-}
-.line-3 {
-  animation-delay: 1.8s;
-}
-.line-4 {
-  animation-delay: 2.5s;
-}
-
-@keyframes line-appear {
-  from {
-    opacity: 0;
-    transform: translateY(5px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.code-prompt {
-  color: #22c55e;
-  font-weight: bold;
-}
-.code-cmd {
-  color: #38bdf8;
-}
-.code-flag {
-  color: #a78bfa;
-}
-.code-url {
-  color: #14b8a6;
-}
-.code-comment {
-  color: #64748b;
-  font-style: italic;
-}
-.code-success {
-  color: #22c55e;
-  background: rgba(34, 197, 94, 0.15);
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-weight: 600;
-}
-.code-response {
-  color: #fbbf24;
-}
-
-/* Blinking Cursor */
-.cursor {
-  display: inline-block;
-  width: 8px;
-  height: 16px;
-  background: #22c55e;
-  animation: blink 1s step-end infinite;
-}
-
-@keyframes blink {
-  0%,
-  50% {
-    opacity: 1;
-  }
-  51%,
-  100% {
-    opacity: 0;
-  }
-}
-
-/* Dark mode adjustments */
-:deep(.dark) .terminal-window {
-  box-shadow:
-    0 25px 50px -12px rgba(0, 0, 0, 0.6),
-    0 0 0 1px rgba(20, 184, 166, 0.2),
-    0 0 40px rgba(20, 184, 166, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+:deep(.dark) .inspector-panel {
+  background: #090d16;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
 }
 </style>

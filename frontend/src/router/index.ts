@@ -172,6 +172,18 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
+    path: '/terms',
+    redirect: '/legal/terms'
+  },
+  {
+    path: '/privacy',
+    redirect: '/legal/privacy'
+  },
+  {
+    path: '/refund',
+    redirect: '/legal/refund'
+  },
+  {
     path: '/legal/:documentId',
     name: 'LegalDocument',
     component: () => import('@/views/public/LegalDocumentView.vue'),
