@@ -78,7 +78,7 @@
           />
         </div>
         <h1 class="sr-only">{{ siteName }}</h1>
-        <h2 class="mt-2 text-2xl font-bold text-gray-900 dark:text-white">One API. Multiple AI Models.</h2>
+        <h2 class="mt-2 text-2xl font-bold text-gray-900 dark:text-white sm:text-3xl sm:whitespace-nowrap">One API. Multiple AI Models.</h2>
         <p class="mt-3 whitespace-pre-wrap [overflow-wrap:anywhere] text-base text-gray-600 dark:text-dark-300">Unified access, smart routing, and usage-based billing.</p>
         <router-link
           :to="isAuthenticated ? dashboardPath : '/login'"
@@ -209,11 +209,11 @@
 
     <!-- Main Content -->
     <main class="relative z-10 flex-1 px-6 py-16">
-      <div class="mx-auto max-w-6xl">
+      <div class="mx-auto max-w-6xl xl:max-w-7xl">
         <!-- Hero Section - Left/Right Layout -->
-        <div class="mb-12 flex flex-col items-center justify-between gap-12 lg:flex-row lg:gap-16">
+        <div class="mb-12 flex flex-col items-center justify-between gap-10 lg:flex-row lg:gap-12 xl:gap-16">
           <!-- Left: Text Content -->
-          <div class="flex-1 text-center lg:text-left">
+          <div class="min-w-0 flex-1 text-center lg:text-left lg:flex-[1.15]">
             <!-- Brand Wordmark: FXVIΛ positioned above AI API Gateway -->
             <div class="mb-5 flex justify-center lg:justify-start">
               <img
@@ -224,7 +224,7 @@
             </div>
 
             <h1
-              class="mb-4 text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-4xl md:text-5xl lg:text-5xl leading-tight"
+              class="mb-4 text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-4xl lg:text-[40px] xl:text-[46px] lg:whitespace-nowrap leading-tight"
             >
               One API. Multiple AI Models.
             </h1>
@@ -245,7 +245,7 @@
           </div>
 
           <!-- Right: Terminal Animation -->
-          <div class="flex flex-1 justify-center lg:justify-end">
+          <div class="flex flex-1 justify-center lg:justify-end flex-shrink-0">
             <div class="terminal-container">
               <div class="terminal-window">
                 <!-- Window header -->
