@@ -224,7 +224,7 @@
             </div>
 
             <h1
-              class="mb-4 text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-4xl lg:text-[40px] xl:text-[46px] lg:whitespace-nowrap leading-tight"
+              class="mb-4 text-2xl sm:text-3xl lg:text-[34px] xl:text-[38px] font-bold tracking-tight text-gray-900 dark:text-white lg:whitespace-nowrap leading-tight"
             >
               One API. Multiple AI Models.
             </h1>
