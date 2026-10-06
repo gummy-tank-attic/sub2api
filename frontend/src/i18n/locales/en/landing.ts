@@ -15,11 +15,11 @@ export default {
     getStarted: 'Get Started',
     goToDashboard: 'Go to Dashboard',
     // User-focused value proposition
-    heroSubtitle: 'One Key, All AI Models',
-    heroDescription: 'Unified endpoints and intelligent routing infrastructure for enterprise AI applications with high-availability failover and usage-based billing.',
+    heroSubtitle: 'One API. Multiple AI Models.',
+    heroDescription: 'Unified access, smart routing, and usage-based billing.',
     tags: {
-      subscriptionToApi: 'API Gateway Routing',
-      stickySession: 'Session Persistence',
+      subscriptionToApi: 'Unified API',
+      stickySession: 'Smart Routing',
       realtimeBilling: 'Pay As You Go'
     },
     // Pain points section
@@ -50,12 +50,12 @@ export default {
       subtitle: 'Three simple steps to stress-free AI access'
     },
     features: {
-      unifiedGateway: 'One-Click Access',
-      unifiedGatewayDesc: 'Get a single API key to call all connected AI models. No separate applications needed.',
-      multiAccount: 'Always Reliable',
-      multiAccountDesc: 'Smart routing across multiple upstream accounts with automatic failover. Say goodbye to errors.',
-      balanceQuota: 'Pay What You Use',
-      balanceQuotaDesc: 'Usage-based billing with quota limits. Full visibility into team consumption.'
+      unifiedGateway: 'One API Key',
+      unifiedGatewayDesc: 'Access supported AI models with a single key.',
+      multiAccount: 'Smart Routing',
+      multiAccountDesc: 'Automatic routing and failover across upstream providers.',
+      balanceQuota: 'Pay As You Go',
+      balanceQuotaDesc: 'Pay for what you use. Track usage and costs.'
     },
     // Comparison section
     comparison: {
