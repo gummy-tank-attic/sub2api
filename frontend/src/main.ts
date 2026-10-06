@@ -31,6 +31,11 @@ function initThemeClass() {
 }
 
 async function bootstrap() {
+  // Default locale to English for global KYB compliance
+  if (localStorage.getItem('sub2api_locale') !== 'en') {
+    localStorage.setItem('sub2api_locale', 'en');
+  }
+
   // Apply theme class globally before app mount to keep all routes consistent.
   initThemeClass()
   initIOSViewportZoomFix()

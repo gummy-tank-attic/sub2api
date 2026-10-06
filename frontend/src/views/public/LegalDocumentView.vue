@@ -91,11 +91,8 @@ import { useAppStore } from '@/stores/app'
 import type { LoginAgreementDocument } from '@/types'
 import zhAdminCompliance from '../../../../docs/legal/admin-compliance.zh.md?raw'
 import enAdminCompliance from '../../../../docs/legal/admin-compliance.en.md?raw'
-import zhTerms from '../../../../docs/legal/terms.zh.md?raw'
 import enTerms from '../../../../docs/legal/terms.en.md?raw'
-import zhPrivacy from '../../../../docs/legal/privacy.zh.md?raw'
 import enPrivacy from '../../../../docs/legal/privacy.en.md?raw'
-import zhRefund from '../../../../docs/legal/refund.zh.md?raw'
 import enRefund from '../../../../docs/legal/refund.en.md?raw'
 
 type LegalDocumentIcon = 'document' | 'shield' | 'globe' | 'cog'
@@ -140,26 +137,25 @@ const currentDocument = computed<LoginAgreementDocument | null>(() => {
     return null
   }
     // Standard built-in legal policies
-  const isZh = getLocale() === 'zh'
   if (id === 'terms' || id === 'terms-of-service') {
     return {
       id: 'terms',
-      title: isZh ? '服务条款 (Terms of Service)' : 'Terms of Service',
-      content_md: isZh ? zhTerms : enTerms
+      title: 'Terms of Service',
+      content_md: enTerms
     }
   }
   if (id === 'privacy' || id === 'privacy-policy') {
     return {
       id: 'privacy',
-      title: isZh ? '隐私政策 (Privacy Policy)' : 'Privacy Policy',
-      content_md: isZh ? zhPrivacy : enPrivacy
+      title: 'Privacy Policy',
+      content_md: enPrivacy
     }
   }
   if (id === 'refund' || id === 'refund-policy') {
     return {
       id: 'refund',
-      title: isZh ? '退款政策 (Refund Policy)' : 'Refund & Cancellation Policy',
-      content_md: isZh ? zhRefund : enRefund
+      title: 'Refund & Cancellation Policy',
+      content_md: enRefund
     }
   }
   return documents.value.find((doc) => doc.id === id) ?? null

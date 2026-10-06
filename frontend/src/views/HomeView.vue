@@ -91,11 +91,11 @@
     <footer class="min-w-0 border-t border-gray-200 px-4 py-6 text-center text-xs text-gray-500 sm:px-6 dark:border-dark-800 dark:text-dark-400">
       <div>&copy; {{ currentYear }} {{ siteName }}. Operated by Helix Tech LLC. All rights reserved.</div>
       <div class="mt-2 flex flex-wrap justify-center gap-4 text-xs text-gray-500 dark:text-dark-400">
-        <router-link to="/legal/terms" class="transition-colors hover:text-gray-900 dark:hover:text-white">服务条款 (Terms)</router-link>
+        <router-link to="/legal/terms" class="transition-colors hover:text-gray-900 dark:hover:text-white">Terms of Service</router-link>
         <span class="text-gray-300 dark:text-dark-700">&bull;</span>
-        <router-link to="/legal/privacy" class="transition-colors hover:text-gray-900 dark:hover:text-white">隐私政策 (Privacy)</router-link>
+        <router-link to="/legal/privacy" class="transition-colors hover:text-gray-900 dark:hover:text-white">Privacy Policy</router-link>
         <span class="text-gray-300 dark:text-dark-700">&bull;</span>
-        <router-link to="/legal/refund" class="transition-colors hover:text-gray-900 dark:hover:text-white">退款政策 (Refund)</router-link>
+        <router-link to="/legal/refund" class="transition-colors hover:text-gray-900 dark:hover:text-white">Refund Policy</router-link>
       </div>
     </footer>
   </div>
@@ -228,7 +228,7 @@
               {{ siteSubtitle || 'AI API Gateway & Routing Infrastructure' }}
             </h1>
             <p class="mb-8 text-base text-gray-600 dark:text-dark-300 md:text-lg leading-relaxed">
-              统一大模型接口调度与高可用智能路由平台，支持透明计量与企业级开发者计费。
+              Unified AI model endpoint gateway and high-availability intelligent routing infrastructure, featuring transparent metering and enterprise developer billing.
             </p>
 
             <!-- CTA Button -->
@@ -403,13 +403,13 @@
         <!-- Legal Links -->
         <div class="flex flex-wrap items-center justify-center gap-5 text-sm text-gray-500 dark:text-dark-400">
           <router-link to="/legal/terms" class="transition-colors hover:text-gray-900 dark:hover:text-white">
-            服务条款 (Terms)
+            Terms of Service
           </router-link>
           <router-link to="/legal/privacy" class="transition-colors hover:text-gray-900 dark:hover:text-white">
-            隐私政策 (Privacy)
+            Privacy Policy
           </router-link>
           <router-link to="/legal/refund" class="transition-colors hover:text-gray-900 dark:hover:text-white">
-            退款政策 (Refund)
+            Refund Policy
           </router-link>
           <a
             v-if="docUrl"
