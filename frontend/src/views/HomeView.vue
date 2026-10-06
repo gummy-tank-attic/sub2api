@@ -72,7 +72,7 @@
         <!-- Pure Text Wordmark: Transparent Background, Elevated Design -->
         <div class="mx-auto mb-6 flex justify-center">
           <img
-            :src="siteLogo || '/logo.svg'"
+            src="/logo.svg"
             :alt="siteName"
             class="h-16 w-auto max-w-[300px] object-contain sm:h-20 sm:max-w-[380px]"
           />
@@ -217,7 +217,7 @@
             <!-- Brand Wordmark: FXVIΛ positioned above AI API Gateway -->
             <div class="mb-5 flex justify-center lg:justify-start">
               <img
-                :src="siteLogo || '/logo.svg'"
+                src="/logo.svg"
                 :alt="siteName"
                 class="h-11 w-auto max-w-[240px] object-contain sm:h-13 sm:max-w-[280px] drop-shadow-sm transition-transform hover:scale-105 duration-300"
               />
