@@ -407,7 +407,9 @@ onMounted(() => {
 .heading-font {
   font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif;
 }
+</style>
 
+<style>
 .stripe-canvas {
   background-color: #f8fafc;
   background-image: 
@@ -417,12 +419,12 @@ onMounted(() => {
   background-size: 100% 100%, 40px 40px, 40px 40px;
 }
 
-:global(.dark) .stripe-canvas {
-  background-color: #07090e;
+.dark .stripe-canvas {
+  background-color: #07090e !important;
   background-image: 
     radial-gradient(ellipse at 50% -20%, rgba(225, 29, 72, 0.12) 0%, transparent 60%),
     linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px) !important;
 }
 
 .stripe-card {
@@ -442,9 +444,9 @@ onMounted(() => {
   transform: translateY(-2px);
 }
 
-:global(.dark) .stripe-card {
+.dark .stripe-card {
   background: rgba(15, 23, 42, 0.6) !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
   box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5) !important;
 }
 
@@ -456,9 +458,9 @@ onMounted(() => {
     0 20px 40px -8px rgba(15, 23, 42, 0.05);
 }
 
-:global(.dark) .inspector-panel {
+.dark .inspector-panel {
   background: #090d16 !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7) !important;
 }
 </style>
