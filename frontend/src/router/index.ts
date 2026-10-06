@@ -33,13 +33,16 @@ const routes: RouteRecordRaw[] = [
   // ==================== Public Routes ====================
   {
     path: '/',
-    alias: '/home',
     name: 'Home',
     component: () => import('@/views/HomeView.vue'),
     meta: {
       requiresAuth: false,
       title: 'Home'
     }
+  },
+  {
+    path: '/home',
+    redirect: to => ({ name: 'Home', query: to.query, hash: to.hash })
   },
   {
     path: '/login',

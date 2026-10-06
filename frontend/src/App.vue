@@ -21,6 +21,20 @@ const announcementStore = useAnnouncementStore()
 const adminComplianceStore = useAdminComplianceStore()
 const adminSettingsStore = useAdminSettingsStore()
 
+// Only the public homepage has the homepage canonical; console pages do not.
+watch(() => route.name, (name) => {
+  const existing = document.querySelector<HTMLLinkElement>('link[data-fxvia-canonical]')
+  if (name !== 'Home') {
+    existing?.remove()
+    return
+  }
+  const link = existing || document.createElement('link')
+  link.rel = 'canonical'
+  link.href = 'https://www.fxvia.com/'
+  link.dataset.fxviaCanonical = ''
+  if (!existing) document.head.appendChild(link)
+}, { immediate: true })
+
 function updateDocumentTitle() {
   const customMenuItems = [
     ...(appStore.cachedPublicSettings?.custom_menu_items ?? []),

@@ -8,6 +8,7 @@ type NavigationGuard = (
 
 const routerHarness = vi.hoisted(() => ({
   guard: null as NavigationGuard | null,
+  routes: [] as any[],
 }))
 
 const authStore = vi.hoisted(() => ({
@@ -33,13 +34,16 @@ const appStore = vi.hoisted(() => ({
 
 vi.mock('vue-router', () => ({
   createWebHistory: vi.fn(() => ({})),
-  createRouter: vi.fn(() => ({
-    beforeEach: vi.fn((guard: NavigationGuard) => {
-      routerHarness.guard = guard
-    }),
-    afterEach: vi.fn(),
-    onError: vi.fn(),
-  })),
+  createRouter: vi.fn((options) => {
+    routerHarness.routes = options.routes
+    return {
+      beforeEach: vi.fn((guard: NavigationGuard) => {
+        routerHarness.guard = guard
+      }),
+      afterEach: vi.fn(),
+      onError: vi.fn(),
+    }
+  }),
 }))
 
 vi.mock('@/stores/auth', () => ({
@@ -208,5 +212,25 @@ describe('subscription route guard (opt-out flag)', () => {
     await navigation
 
     expect(next).toHaveBeenCalledWith('/admin/dashboard')
+  })
+})
+
+
+describe('homepage URL compatibility using production route records', () => {
+  it('resolves Home to root and preserves legacy query and fragment', async () => {
+    const actual = await vi.importActual<typeof import('vue-router')>('vue-router')
+    const router = actual.createRouter({
+      history: actual.createMemoryHistory(),
+      routes: routerHarness.routes
+        .filter(route => route.name === 'Home' || route.path === '/home')
+        .map(route => route.name === 'Home' ? { ...route, component: { template: '<div />' } } : route),
+    })
+    expect(router.resolve({ name: 'Home' }).path).toBe('/')
+    await router.push('/home?ref=a%2Fb&ref=c#pricing')
+    expect(router.currentRoute.value.name).toBe('Home')
+    expect(router.currentRoute.value.path).toBe('/')
+    expect(router.currentRoute.value.query).toEqual({ ref: ['a/b', 'c'] })
+    expect(router.currentRoute.value.hash).toBe('#pricing')
+    expect(router.getRoutes().find(route => route.path === '/')?.aliasOf).toBeUndefined()
   })
 })

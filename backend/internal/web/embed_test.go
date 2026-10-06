@@ -650,11 +650,11 @@ func TestFrontendServer_Middleware(t *testing.T) {
 
 		// Request for existing static file
 		w := httptest.NewRecorder()
-		req := httptest.NewRequest(http.MethodGet, "/logo.png", nil)
+		req := httptest.NewRequest(http.MethodGet, "/logo.svg", nil)
 		router.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusOK, w.Code)
-		assert.Contains(t, w.Header().Get("Content-Type"), "image/png")
+		assert.Contains(t, w.Header().Get("Content-Type"), "image/svg+xml")
 		assert.Empty(t, w.Header().Get("Cache-Control"))
 
 		entries, err := fs.ReadDir(server.distFS, "assets")
@@ -735,11 +735,11 @@ func TestServeEmbeddedFrontend(t *testing.T) {
 		router.Use(middleware)
 
 		w := httptest.NewRecorder()
-		req := httptest.NewRequest(http.MethodGet, "/logo.png", nil)
+		req := httptest.NewRequest(http.MethodGet, "/logo.svg", nil)
 		router.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusOK, w.Code)
-		assert.Contains(t, w.Header().Get("Content-Type"), "image/png")
+		assert.Contains(t, w.Header().Get("Content-Type"), "image/svg+xml")
 	})
 
 	t.Run("serves_index_html_for_root", func(t *testing.T) {
@@ -907,5 +907,28 @@ func BenchmarkFrontendServerServeIndexHTML(b *testing.B) {
 		c.Set(middleware.CSPNonceKey, "test-nonce")
 
 		server.serveIndexHTML(c)
+	}
+}
+
+func TestEmbeddedHomepagePermanentRedirect(t *testing.T) {
+	provider := &mockSettingsProvider{settings: map[string]string{"site_name": "FXVIA"}}
+	server, err := NewFrontendServer(provider)
+	require.NoError(t, err)
+	for name, handler := range map[string]gin.HandlerFunc{
+		"settings": server.Middleware(),
+		"legacy":   ServeEmbeddedFrontend(),
+	} {
+		t.Run(name, func(t *testing.T) {
+			router := gin.New()
+			router.Use(handler)
+			w := httptest.NewRecorder()
+			router.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/home?ref=a%2Fb", nil))
+			require.Equal(t, http.StatusPermanentRedirect, w.Code)
+			require.Equal(t, "/?ref=a%2Fb", w.Header().Get("Location"))
+			w = httptest.NewRecorder()
+			router.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/", nil))
+			require.Equal(t, http.StatusOK, w.Code)
+			require.Equal(t, `<https://www.fxvia.com/>; rel="canonical"`, w.Header().Get("Link"))
+		})
 	}
 }

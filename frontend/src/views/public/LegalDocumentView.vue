@@ -2,7 +2,7 @@
   <div class="min-h-screen bg-gray-50 text-gray-900 dark:bg-dark-950 dark:text-white">
     <header class="border-b border-gray-200 bg-white/95 dark:border-dark-800 dark:bg-dark-900/95">
       <div class="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
-        <RouterLink to="/home" class="flex min-w-0 items-center">
+        <RouterLink :to="{ name: 'Home' }" class="flex min-w-0 items-center">
           <img :src="siteLogo || '/logo.svg'" :alt="siteName" class="h-7 w-auto max-w-[130px] object-contain" />
         </RouterLink>
         <RouterLink

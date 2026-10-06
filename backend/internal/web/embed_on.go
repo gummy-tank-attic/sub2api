@@ -87,6 +87,9 @@ func (s *FrontendServer) InvalidateCache() {
 func (s *FrontendServer) Middleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		path := c.Request.URL.Path
+		if handleHomepageURL(c) {
+			return
+		}
 
 		// Skip API routes
 		if shouldBypassEmbeddedFrontend(path) {
@@ -310,6 +313,9 @@ func ServeEmbeddedFrontend() gin.HandlerFunc {
 
 	return func(c *gin.Context) {
 		path := c.Request.URL.Path
+		if handleHomepageURL(c) {
+			return
+		}
 
 		if shouldBypassEmbeddedFrontend(path) {
 			c.Next()
