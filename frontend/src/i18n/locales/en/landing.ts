@@ -16,9 +16,9 @@ export default {
     goToDashboard: 'Go to Dashboard',
     // User-focused value proposition
     heroSubtitle: 'One Key, All AI Models',
-    heroDescription: 'No need to manage multiple subscriptions. Access Claude, GPT, Gemini and more with a single API key',
+    heroDescription: 'Unified endpoints and intelligent routing infrastructure for enterprise AI applications with high-availability failover and usage-based billing.',
     tags: {
-      subscriptionToApi: 'Subscription to API',
+      subscriptionToApi: 'API Gateway Routing',
       stickySession: 'Session Persistence',
       realtimeBilling: 'Pay As You Go'
     },
@@ -28,7 +28,7 @@ export default {
       items: {
         expensive: {
           title: 'High Subscription Costs',
-          desc: 'Paying for multiple AI subscriptions that add up every month'
+          desc: 'Managing multiple fragmented API providers and unpredictable monthly cloud commitments'
         },
         complex: {
           title: 'Account Chaos',
@@ -68,7 +68,7 @@ export default {
       items: {
         pricing: {
           feature: 'Pricing',
-          official: 'Fixed monthly fee, pay even if unused',
+          official: 'Fixed vendor pricing, rigid allocations',
           us: 'Pay only for what you use'
         },
         models: {
@@ -192,8 +192,8 @@ export default {
 
   // Setup Wizard
   setup: {
-    title: 'Sub2API Setup',
-    description: 'Configure your Sub2API instance',
+    title: 'FXVIA Setup',
+    description: 'Configure your FXVIA instance',
     database: {
       title: 'Database Configuration',
       description: 'Connect to your PostgreSQL database',

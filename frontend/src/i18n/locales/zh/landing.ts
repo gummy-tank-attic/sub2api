@@ -18,7 +18,7 @@ export default {
     heroSubtitle: '一个密钥，畅用多个 AI 模型',
     heroDescription: '无需管理多个订阅账号，一站式接入 Claude、GPT、Gemini 等主流 AI 服务',
     tags: {
-      subscriptionToApi: '订阅转 API',
+      subscriptionToApi: '接口网关路由',
       stickySession: '会话保持',
       realtimeBilling: '按量计费'
     },
@@ -53,7 +53,7 @@ export default {
       unifiedGateway: '一键接入',
       unifiedGatewayDesc: '获取一个 API 密钥，即可调用所有已接入的 AI 模型，无需分别申请。',
       multiAccount: '稳定可靠',
-      multiAccountDesc: '智能调度多个上游账号，自动切换和负载均衡，告别频繁报错。',
+      multiAccountDesc: '智能调度多个上游通道，自动容灾和负载均衡，保障服务高可用。',
       balanceQuota: '用多少付多少',
       balanceQuotaDesc: '按实际使用量计费，支持设置配额上限，团队用量一目了然。'
     },
@@ -84,7 +84,7 @@ export default {
         stability: {
           feature: '服务稳定性',
           official: '单账号易触发限制',
-          us: '多账号池，自动切换'
+          us: '多通道路由，自动容灾'
         },
         control: {
           feature: '用量控制',
@@ -192,8 +192,8 @@ export default {
 
   // Setup Wizard
   setup: {
-    title: 'Sub2API 安装向导',
-    description: '配置您的 Sub2API 实例',
+    title: 'FXVIA 安装向导',
+    description: '配置您的 FXVIA 实例',
     database: {
       title: '数据库配置',
       description: '连接到您的 PostgreSQL 数据库',
