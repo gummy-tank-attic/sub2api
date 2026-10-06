@@ -71,7 +71,7 @@ func advanceOpenAIWSCyberBlockState(blocked, pending, marked bool, turnErr error
 }
 
 var errOpenAIWSUnsupportedModelSwitch = errors.New("selected account does not support websocket model switch")
-var errLunaSubagentPolicyDenied = errors.New("luna requires a spawned subagent")
+var errLunaSubagentPolicyDenied = errors.New("Luna requires a spawned subagent")
 
 func newOpenAIWSUnsupportedModelSwitchError(model string) error {
 	cause := fmt.Errorf("%w: model %q", errOpenAIWSUnsupportedModelSwitch, strings.TrimSpace(model))

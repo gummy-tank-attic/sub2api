@@ -56,7 +56,7 @@ func TestOpenAIResponsesWebSocket_RejectsDirectLunaBeforeScheduling(t *testing.T
 	defer cancel()
 	conn, _, err := coderws.Dial(ctx, "ws"+strings.TrimPrefix(s.URL, "http")+"/openai/v1/responses", nil)
 	require.NoError(t, err)
-	defer func() { _ = conn.CloseNow() }()
+	defer conn.CloseNow()
 	require.NoError(t, conn.Write(ctx, coderws.MessageText, []byte(`{"type":"response.create","model":"gpt-5.6-luna","input":"probe"}`)))
 	_, _, err = conn.Read(ctx)
 	require.Equal(t, coderws.StatusPolicyViolation, coderws.CloseStatus(err))
