@@ -50,8 +50,8 @@
           />
         </div>
         <h1 class="sr-only">{{ siteName }}</h1>
-        <h2 class="mt-2 text-2xl font-bold text-slate-900 sm:text-3xl sm:whitespace-nowrap">{{ t('home.heroSubtitle') }}</h2>
-        <p class="mt-3 whitespace-pre-wrap [overflow-wrap:anywhere] text-base text-slate-600">{{ t('home.heroDescription') }}</p>
+        <h2 class="mt-2 text-2xl font-bold text-slate-900 sm:text-3xl sm:whitespace-nowrap tracking-normal leading-snug">{{ t('home.heroSubtitle') }}</h2>
+        <p class="mt-3 whitespace-pre-wrap [overflow-wrap:anywhere] text-base text-slate-600 leading-relaxed">{{ t('home.heroDescription') }}</p>
         <router-link
           :to="isAuthenticated ? dashboardPath : '/login'"
           class="mt-8 inline-flex min-h-10 items-center justify-center rounded-xl bg-[#cc0000] px-6 py-2.5 text-sm font-semibold text-white shadow-md shadow-[#cc0000]/20 hover:bg-[#b30000] transition-all"
@@ -73,17 +73,17 @@
     </footer>
   </div>
 
-  <!-- Default Home Page: Stripe Editorial Warm Alabaster (Pure Light Mode) -->
+  <!-- Default Home Page: Pure Minimal Clean Light Mode -->
   <div
     v-else
-    class="stripe-canvas relative flex min-h-screen flex-col overflow-hidden text-slate-800 antialiased"
+    class="clean-canvas relative flex min-h-screen flex-col overflow-hidden text-slate-800 antialiased"
   >
     <!-- Header: Elevated Frosted Navbar -->
     <header class="sticky top-0 z-50 border-b border-slate-200/60 bg-white/80 px-6 py-3.5 backdrop-blur-md">
       <nav class="mx-auto flex max-w-7xl items-center justify-between">
         <!-- Left: Wordmark Logo & Status -->
         <div class="flex items-center gap-4 sm:gap-6">
-          <router-link to="/" class="flex items-center gap-2 transition-transform hover:scale-[1.01] duration-150">
+          <router-link to="/" class="flex items-center transition-transform hover:scale-[1.01] duration-150">
             <img
               src="/logo.svg"
               :alt="siteName"
@@ -126,46 +126,44 @@
     </header>
 
     <!-- Main Content Area -->
-    <main class="flex-1 flex flex-col justify-center py-10 lg:py-16">
-      <div class="mx-auto max-w-7xl px-6 lg:px-8 w-full space-y-12 lg:space-y-16">
+    <main class="flex-1 flex flex-col justify-center py-12 lg:py-16">
+      <div class="mx-auto max-w-7xl px-6 lg:px-8 w-full space-y-14 lg:space-y-16">
         
         <!-- Hero Section: Split Grid Layout -->
         <div class="grid items-center gap-10 lg:grid-cols-12 lg:gap-14">
           
           <!-- Left Column: Copy & Actions -->
-          <div class="lg:col-span-7 text-center lg:text-left space-y-5">
+          <div class="lg:col-span-7 text-center lg:text-left space-y-6">
             
-            <!-- Brand Vector Anchor -->
-            <div class="flex justify-center lg:justify-start">
-              <img
-                src="/logo.svg"
-                :alt="siteName"
-                class="h-7 sm:h-8 w-auto max-w-[180px] object-contain"
-              />
+            <!-- Category Pill -->
+            <div class="inline-flex items-center gap-2 rounded-full bg-rose-50/80 border border-rose-200/60 px-3 py-1 text-xs font-semibold text-[#cc0000]">
+              <span>FXVIA</span>
+              <span class="text-rose-300">•</span>
+              <span class="text-slate-600 font-normal">AI API Gateway</span>
             </div>
 
-            <!-- Main Value Headline -->
-            <h1 class="heading-font text-3xl sm:text-4xl lg:text-[42px] font-bold tracking-tight text-slate-900 leading-[1.12]">
+            <!-- Main Value Headline: High Legibility, Comfortable Leading & Normal Tracking -->
+            <h1 class="font-bold text-slate-900 text-3xl sm:text-4xl lg:text-[40px] leading-[1.35] tracking-normal">
               {{ t('home.heroSubtitle') }}
             </h1>
             
-            <!-- Concise Value Subtitle -->
+            <!-- Concise Value Subtitle: Relaxed Line Height -->
             <p class="text-base sm:text-lg text-slate-600 max-w-xl mx-auto lg:mx-0 font-normal leading-relaxed">
               {{ t('home.heroDescription') }}
             </p>
 
             <!-- Three Cohesive Feature Badges -->
-            <div class="flex flex-wrap items-center justify-center lg:justify-start gap-2 pt-1 text-xs font-medium text-slate-600">
-              <span class="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1 border border-slate-200/80 shadow-xs">
-                <span class="h-1.5 w-1.5 rounded-full bg-slate-500"></span>
+            <div class="flex flex-wrap items-center justify-center lg:justify-start gap-2.5 pt-1 text-xs font-medium text-slate-600">
+              <span class="inline-flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 border border-slate-200/80 shadow-xs">
+                <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
                 <span>{{ t('home.tags.subscriptionToApi') }}</span>
               </span>
-              <span class="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1 border border-slate-200/80 shadow-xs">
-                <span class="h-1.5 w-1.5 rounded-full bg-slate-500"></span>
+              <span class="inline-flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 border border-slate-200/80 shadow-xs">
+                <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
                 <span>{{ t('home.tags.stickySession') }}</span>
               </span>
-              <span class="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1 border border-slate-200/80 shadow-xs">
-                <span class="h-1.5 w-1.5 rounded-full bg-slate-500"></span>
+              <span class="inline-flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 border border-slate-200/80 shadow-xs">
+                <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
                 <span>{{ t('home.tags.realtimeBilling') }}</span>
               </span>
             </div>
@@ -174,7 +172,7 @@
             <div class="flex items-center justify-center lg:justify-start pt-3">
               <router-link
                 :to="isAuthenticated ? dashboardPath : '/login'"
-                class="inline-flex items-center justify-center rounded-xl bg-[#cc0000] px-6 py-3 text-sm font-semibold text-white shadow-md shadow-[#cc0000]/25 hover:bg-[#b30000] transition-all hover:scale-[1.02] active:scale-[0.98]"
+                class="inline-flex items-center justify-center rounded-xl bg-[#cc0000] px-6 py-3 text-sm font-semibold text-white shadow-md shadow-[#cc0000]/20 hover:bg-[#b30000] transition-all hover:scale-[1.01] active:scale-[0.98]"
               >
                 <span>{{ isAuthenticated ? t('home.goToDashboard') : t('home.getStarted') }}</span>
                 <svg class="ml-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -188,14 +186,14 @@
           <div class="lg:col-span-5 flex justify-center lg:justify-end">
             <div class="inspector-panel w-full max-w-lg rounded-2xl overflow-hidden font-mono text-xs">
               <!-- Header Bar with Slate Mac Dots -->
-              <div class="flex items-center justify-between border-b border-slate-200/80 bg-slate-50/90 px-4 py-3">
+              <div class="flex items-center justify-between border-b border-slate-200/80 bg-slate-50/80 px-4 py-3">
                 <div class="flex items-center gap-2">
                   <span class="h-2.5 w-2.5 rounded-full bg-slate-300"></span>
                   <span class="h-2.5 w-2.5 rounded-full bg-slate-300"></span>
                   <span class="h-2.5 w-2.5 rounded-full bg-slate-300"></span>
                   <span class="ml-2 text-[11px] text-slate-500 font-sans font-medium">api.fxvia.com</span>
                 </div>
-                <div class="flex items-center gap-1.5 text-[10px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full font-mono">
+                <div class="flex items-center gap-1.5 text-[10px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full font-mono font-medium">
                   <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
                   <span>200 OK</span>
                 </div>
@@ -231,64 +229,64 @@
         <!-- Three Feature Value Cards Grid -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
           <!-- Card 1: One API Key -->
-          <div class="stripe-card rounded-2xl p-6 sm:p-8 flex flex-col justify-between">
-            <div class="space-y-4">
+          <div class="stripe-card rounded-2xl p-6 sm:p-7 flex flex-col justify-between">
+            <div class="space-y-3.5">
               <div class="flex items-center justify-between">
-                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-700 border border-slate-200/80">
+                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100/90 text-slate-700 border border-slate-200/80">
                   <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
                   </svg>
                 </div>
                 <span class="text-[10px] font-mono tracking-widest uppercase text-slate-400 font-semibold">FEATURE 01</span>
               </div>
-              <h3 class="text-lg font-bold text-slate-900 tracking-tight">{{ t('home.features.unifiedGateway') }}</h3>
-              <p class="text-sm text-slate-600 leading-relaxed">
+              <h3 class="text-lg font-bold text-slate-900 tracking-normal pt-1">{{ t('home.features.unifiedGateway') }}</h3>
+              <p class="text-sm text-slate-600 leading-relaxed font-normal">
                 {{ t('home.features.unifiedGatewayDesc') }}
               </p>
             </div>
-            <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+            <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-normal">
               <span>{{ t('home.features.unifiedGatewayTag') }}</span>
             </div>
           </div>
 
           <!-- Card 2: Smart Routing -->
-          <div class="stripe-card rounded-2xl p-6 sm:p-8 flex flex-col justify-between">
-            <div class="space-y-4">
+          <div class="stripe-card rounded-2xl p-6 sm:p-7 flex flex-col justify-between">
+            <div class="space-y-3.5">
               <div class="flex items-center justify-between">
-                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-700 border border-slate-200/80">
+                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100/90 text-slate-700 border border-slate-200/80">
                   <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                   </svg>
                 </div>
                 <span class="text-[10px] font-mono tracking-widest uppercase text-slate-400 font-semibold">FEATURE 02</span>
               </div>
-              <h3 class="text-lg font-bold text-slate-900 tracking-tight">{{ t('home.features.multiAccount') }}</h3>
-              <p class="text-sm text-slate-600 leading-relaxed">
+              <h3 class="text-lg font-bold text-slate-900 tracking-normal pt-1">{{ t('home.features.multiAccount') }}</h3>
+              <p class="text-sm text-slate-600 leading-relaxed font-normal">
                 {{ t('home.features.multiAccountDesc') }}
               </p>
             </div>
-            <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+            <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-normal">
               <span>{{ t('home.features.multiAccountTag') }}</span>
             </div>
           </div>
 
           <!-- Card 3: Pay As You Go -->
-          <div class="stripe-card rounded-2xl p-6 sm:p-8 flex flex-col justify-between">
-            <div class="space-y-4">
+          <div class="stripe-card rounded-2xl p-6 sm:p-7 flex flex-col justify-between">
+            <div class="space-y-3.5">
               <div class="flex items-center justify-between">
-                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-700 border border-slate-200/80">
+                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100/90 text-slate-700 border border-slate-200/80">
                   <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                   </svg>
                 </div>
                 <span class="text-[10px] font-mono tracking-widest uppercase text-slate-400 font-semibold">FEATURE 03</span>
               </div>
-              <h3 class="text-lg font-bold text-slate-900 tracking-tight">{{ t('home.features.balanceQuota') }}</h3>
-              <p class="text-sm text-slate-600 leading-relaxed">
+              <h3 class="text-lg font-bold text-slate-900 tracking-normal pt-1">{{ t('home.features.balanceQuota') }}</h3>
+              <p class="text-sm text-slate-600 leading-relaxed font-normal">
                 {{ t('home.features.balanceQuotaDesc') }}
               </p>
             </div>
-            <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+            <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-normal">
               <span>{{ t('home.features.balanceQuotaTag') }}</span>
             </div>
           </div>
@@ -298,7 +296,7 @@
     </main>
 
     <!-- Footer: Clean Legal & Attribution -->
-    <footer class="border-t border-slate-200/80 bg-white/50 px-6 py-8 text-xs text-slate-500 backdrop-blur-xs">
+    <footer class="border-t border-slate-200/80 bg-white/60 px-6 py-8 text-xs text-slate-500 backdrop-blur-xs">
       <div class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 sm:flex-row">
         <div>
           &copy; {{ currentYear }} {{ siteName }}. Operated by Helix Tech LLC. {{ t('home.footer.allRightsReserved') }}
@@ -368,44 +366,39 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
-.heading-font {
-  font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif;
-}
-</style>
-
 <style>
-.stripe-canvas {
+/* Clean soothing alabaster canvas without distracting grid lines */
+.clean-canvas {
   background-color: #f8fafc;
-  background-image: 
-    radial-gradient(ellipse at 50% -20%, rgba(204, 0, 0, 0.035) 0%, transparent 60%),
-    linear-gradient(rgba(15, 23, 42, 0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(15, 23, 42, 0.02) 1px, transparent 1px);
-  background-size: 100% 100%, 40px 40px, 40px 40px;
+  background-image: radial-gradient(ellipse at 50% -20%, rgba(204, 0, 0, 0.035) 0%, transparent 65%);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 .stripe-card {
   background: #ffffff;
-  border: 1px solid rgba(203, 213, 225, 0.6);
+  border: 1px solid rgba(226, 232, 240, 0.9);
   box-shadow: 
     0 1px 3px 0 rgba(15, 23, 42, 0.02),
     0 10px 24px -4px rgba(15, 23, 42, 0.03);
-  transition: all 0.25s ease;
+  transition: all 0.2s ease;
 }
 
 .stripe-card:hover {
-  border-color: rgba(148, 163, 184, 0.8);
+  border-color: rgba(203, 213, 225, 1);
   box-shadow: 
-    0 2px 4px 0 rgba(15, 23, 42, 0.02),
-    0 16px 32px -4px rgba(15, 23, 42, 0.05);
+    0 4px 6px -1px rgba(15, 23, 42, 0.03),
+    0 16px 30px -6px rgba(15, 23, 42, 0.04);
   transform: translateY(-2px);
 }
 
 .inspector-panel {
   background: #ffffff;
-  border: 1px solid rgba(203, 213, 225, 0.7);
+  border: 1px solid rgba(226, 232, 240, 0.9);
   box-shadow: 
     0 4px 6px -1px rgba(15, 23, 42, 0.02),
-    0 20px 40px -8px rgba(15, 23, 42, 0.05);
+    0 20px 40px -8px rgba(15, 23, 42, 0.04);
 }
 </style>
