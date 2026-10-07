@@ -17,10 +17,9 @@ function isLocaleCode(value: string): value is LocaleCode {
 }
 
 function getDefaultLocale(): LocaleCode {
-  // Always default to English for global enterprise compliance
   const saved = localStorage.getItem(LOCALE_KEY)
-  if (saved === 'en') {
-    return 'en'
+  if (saved && isLocaleCode(saved)) {
+    return saved
   }
   return DEFAULT_LOCALE
 }
