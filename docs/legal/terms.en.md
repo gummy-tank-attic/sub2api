@@ -42,7 +42,10 @@ TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, IN NO EVENT SHALL HELIX TECH 
 ## 7. Governing Law & Jurisdiction
 These Terms shall be governed by, construed, and enforced in accordance with the laws of the **State of Wyoming, United States of America**, without regard to conflict of law principles. Any dispute arising out of or in connection with these Terms shall be submitted exclusively to the courts of competent jurisdiction located in the State of Wyoming, USA.
 
-## 8. Contact Information & Support
+## 8. Third-Party Trademarks & Non-Affiliation Disclaimer
+All third-party company names, product names, logos, brands, and registered trademarks referenced on this website and across our Services (including, but not limited to, OpenAI, Anthropic, Google, and Meta) are the property of their respective owners. Reference to these commercial designations is solely for descriptive technical identification and API compatibility purposes, and does not constitute or imply any endorsement, sponsorship, authorization, or affiliation between FXVIA (or HELIX TECH LLC) and the respective trademark holders.
+
+## 9. Contact Information & Support
 If you have any questions, feedback, or inquiries regarding these Terms, please contact us at:
 - **Entity:** HELIX TECH LLC
 - **Compliance & Support Email:** contact@fixvia.com

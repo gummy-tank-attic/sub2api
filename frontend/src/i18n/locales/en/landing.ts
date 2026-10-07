@@ -20,6 +20,7 @@ export default {
     termsOfService: 'Terms of Service',
     privacyPolicy: 'Privacy Policy',
     refundPolicy: 'Refund Policy',
+    disclaimer: 'All product names, logos, brands, and trademarks are property of their respective owners. Mention of these names does not imply any affiliation, sponsorship, or endorsement.',
     // User-focused value proposition
     heroSubtitle: 'One API. Multiple AI Models.',
     heroDescription: 'Unified access, smart routing, and usage-based billing.',

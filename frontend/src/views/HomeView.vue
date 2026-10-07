@@ -29,6 +29,13 @@
           />
         </div>
         <div class="flex max-w-full shrink-0 flex-wrap items-center justify-end gap-3">
+          <router-link
+            v-if="showModelPlazaEntry"
+            to="/model-plaza"
+            class="text-xs font-medium text-slate-600 hover:text-slate-900 transition-colors"
+          >
+            Model Plaza
+          </router-link>
           <LocaleSwitcher />
           <router-link
             :to="isAuthenticated ? dashboardPath : '/login'"
@@ -69,7 +76,14 @@
         <router-link to="/legal/privacy" class="transition-colors hover:text-slate-900">{{ t('home.privacyPolicy') }}</router-link>
         <span class="text-slate-300">&bull;</span>
         <router-link to="/legal/refund" class="transition-colors hover:text-slate-900">{{ t('home.refundPolicy') }}</router-link>
+        <template v-if="docUrl">
+          <span class="text-slate-300">&bull;</span>
+          <a :href="docUrl" target="_blank" rel="noopener noreferrer" class="transition-colors hover:text-slate-900">{{ t('home.docs') }}</a>
+        </template>
       </div>
+      <p class="mx-auto mt-3 max-w-2xl text-[11px] leading-relaxed text-slate-400">
+        {{ t('home.disclaimer') }}
+      </p>
     </footer>
   </div>
 
@@ -98,6 +112,13 @@
 
         <!-- Right: Language & Action Controls -->
         <div class="flex items-center gap-3 sm:gap-4 text-sm">
+          <router-link
+            v-if="showModelPlazaEntry"
+            to="/model-plaza"
+            class="text-xs sm:text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
+          >
+            Model Plaza
+          </router-link>
           <LocaleSwitcher />
 
           <router-link
@@ -184,7 +205,7 @@
 
           <!-- Right Column: Light Mode Developer Inspector Card -->
           <div class="lg:col-span-5 flex justify-center lg:justify-end">
-            <div class="inspector-panel w-full max-w-lg rounded-2xl overflow-hidden font-mono text-xs">
+            <div class="inspector-panel terminal-container w-full max-w-lg rounded-2xl overflow-hidden font-mono text-xs">
               <!-- Header Bar with Slate Mac Dots -->
               <div class="flex items-center justify-between border-b border-slate-200/80 bg-slate-50/80 px-4 py-3">
                 <div class="flex items-center gap-2">
@@ -313,7 +334,18 @@
           <router-link to="/legal/refund" class="transition-colors hover:text-slate-900">
             {{ t('home.refundPolicy') }}
           </router-link>
+          <template v-if="docUrl">
+            <span class="text-slate-300">&bull;</span>
+            <a :href="docUrl" target="_blank" rel="noopener noreferrer" class="transition-colors hover:text-slate-900">
+              {{ t('home.docs') }}
+            </a>
+          </template>
         </div>
+      </div>
+      <div class="mx-auto mt-4 max-w-7xl border-t border-slate-200/50 pt-3">
+        <p class="text-[11px] leading-relaxed text-slate-400">
+          {{ t('home.disclaimer') }}
+        </p>
       </div>
     </footer>
   </div>
@@ -335,6 +367,7 @@ const appStore = useAppStore()
 // Site settings
 const siteName = computed(() => appStore.cachedPublicSettings?.site_name || appStore.siteName || 'FXVIA')
 const siteLogo = computed(() => sanitizeUrl(appStore.cachedPublicSettings?.site_logo || appStore.siteLogo || '', { allowRelative: true, allowDataUrl: true }))
+const docUrl = computed(() => sanitizeUrl(appStore.cachedPublicSettings?.doc_url || appStore.docUrl || ''))
 const homeContent = computed(() => appStore.cachedPublicSettings?.home_content || '')
 const hasHomeContent = computed(() => homeContent.value.trim().length > 0)
 const homeContentUrl = computed(() => {
@@ -346,6 +379,11 @@ const sanitizedHomeContent = computed(() => DOMPurify.sanitize(homeContent.value
   FORBID_ATTR: ['style'],
 }))
 const compactHomeEnabled = computed(() => appStore.cachedPublicSettings?.compact_home_enabled === true)
+
+// Model Plaza entry
+const modelPlazaEnabled = computed(() => Boolean(appStore.cachedPublicSettings?.model_plaza_enabled))
+const modelPlazaRequiresAuth = computed(() => appStore.cachedPublicSettings?.model_plaza_require_auth === true)
+const showModelPlazaEntry = computed(() => modelPlazaEnabled.value && (isAuthenticated.value || !modelPlazaRequiresAuth.value))
 
 // Auth state
 const isAuthenticated = computed(() => authStore.isAuthenticated)

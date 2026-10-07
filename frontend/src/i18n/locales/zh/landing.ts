@@ -20,8 +20,9 @@ export default {
     termsOfService: '服务条款',
     privacyPolicy: '隐私政策',
     refundPolicy: '退款政策',
+    disclaimer: '所有产品名称、徽标、品牌及商标均为其各自所有者的财产。提及上述名称仅用于技术与兼容性识别，不代表任何官方附属、赞助或背书关系。',
     // 新增：面向用户的价值主张
-    heroSubtitle: '统一 API · 畅连主流 AI 模型',
+    heroSubtitle: '统一 API · 畅连 AI 模型',
     heroDescription: '聚合接入，智能路由与按量透明计费。',
     tags: {
       subscriptionToApi: '统一 API',
