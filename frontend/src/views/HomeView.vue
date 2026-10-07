@@ -156,11 +156,13 @@
           <!-- Left Column: Copy & Actions -->
           <div class="lg:col-span-7 text-center lg:text-left space-y-6">
             
-            <!-- Category Pill -->
-            <div class="inline-flex items-center gap-2 rounded-full bg-rose-50/80 border border-rose-200/60 px-3 py-1 text-xs font-semibold text-[#cc0000]">
-              <span>FXVIA</span>
-              <span class="text-rose-300">•</span>
-              <span class="text-slate-600 font-normal">AI API Gateway</span>
+            <!-- Brand Wordmark: Original FXVIΛ Vector Logo -->
+            <div class="flex justify-center lg:justify-start -mb-2">
+              <img
+                src="/logo.svg"
+                :alt="siteName"
+                class="h-7 sm:h-8 w-auto max-w-[180px] object-contain"
+              />
             </div>
 
             <!-- Main Value Headline: High Legibility, Comfortable Leading & Normal Tracking -->
