@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3588 809" fill="none" role="img" aria-label="FXVIA">
+  <g fill="#cc0000">
+    <!-- F -->
+    <g transform="translate(17, 759) scale(1, -1)">
+      <path d="M63 0V709H572V558H242V416H556V265H242V0Z"/>
+    </g>
+    <!-- X -->
+    <g transform="translate(738, 759) scale(1, -1)">
+      <path d="M11 0 259 365 23 709H236L367 501L496 709H700L471 368L713 0H503L361 233L215 0Z"/>
+    </g>
+    <!-- V -->
+    <g transform="translate(1600, 759) scale(1, -1)">
+      <path d="M278 0 11 709H202L361 252L523 709H710L440 0Z"/>
+    </g>
+    <!-- I -->
+    <g transform="translate(2407, 759) scale(1, -1)">
+      <path d="M63 0V709H242V0Z"/>
+    </g>
+    <!-- Λ (Inverted V) -->
+    <g transform="translate(2798, 50) scale(1, 1)">
+      <path d="M278 0 11 709H202L361 252L523 709H710L440 0Z"/>
+    </g>
+  </g>
+</svg>
