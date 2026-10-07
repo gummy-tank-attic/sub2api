@@ -28,22 +28,18 @@
     <div class="relative z-10 w-full max-w-md">
       <!-- Logo/Brand -->
       <div class="mb-8 text-center">
-        <!-- Custom Logo or Default Logo -->
+        <!-- Official FXVIA Vector Wordmark -->
         <template v-if="settingsLoaded">
-          <div class="mb-5 inline-flex items-center justify-center">
-            <img
-              :src="siteLogo || '/logo.svg'"
-              :alt="siteName"
-              class="h-12 w-auto max-w-[220px] object-contain"
-            />
+          <div class="inline-flex items-center justify-center">
+            <router-link to="/" class="inline-flex items-center justify-center transition-transform hover:scale-[1.02]">
+              <img
+                src="/logo.svg"
+                :alt="siteName"
+                class="h-8 sm:h-9 w-auto max-w-[180px] object-contain"
+              />
+            </router-link>
           </div>
           <h1 class="sr-only">{{ siteName }}</h1>
-          <p class="text-sm text-gray-500 dark:text-dark-400">
-            {{ siteSubtitle }}
-          </p>
-          <p class="mt-1 text-xs text-gray-400 dark:text-dark-500">
-            Unified model endpoints with usage-based developer billing.
-          </p>
         </template>
       </div>
 
@@ -68,13 +64,10 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
 import { useAppStore } from '@/stores'
-import { sanitizeUrl } from '@/utils/url'
 
 const appStore = useAppStore()
 
 const siteName = computed(() => appStore.siteName || 'FXVIA')
-const siteLogo = computed(() => sanitizeUrl(appStore.siteLogo || '', { allowRelative: true, allowDataUrl: true }))
-const siteSubtitle = computed(() => appStore.cachedPublicSettings?.site_subtitle || 'AI API Gateway & Routing Infrastructure')
 const settingsLoaded = computed(() => appStore.publicSettingsLoaded)
 
 const currentYear = computed(() => new Date().getFullYear())
