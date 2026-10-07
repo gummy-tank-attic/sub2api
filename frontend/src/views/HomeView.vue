@@ -25,7 +25,7 @@
           <img
             :src="siteLogo || '/logo.svg'"
             :alt="siteName"
-            class="h-5 w-auto max-w-[125px] shrink-0 object-contain"
+            class="h-[14px] w-auto max-w-[100px] shrink-0 object-contain"
           />
         </div>
         <div class="flex max-w-full shrink-0 flex-wrap items-center justify-end gap-3">
@@ -87,7 +87,7 @@
             <img
               src="/logo.svg"
               :alt="siteName"
-              class="h-4.5 sm:h-5 w-auto max-w-[125px] object-contain"
+              class="h-[14px] w-auto max-w-[100px] object-contain"
             />
           </router-link>
           <div class="inline-flex items-center gap-1.5 rounded-full bg-slate-100/90 px-2.5 py-0.5 text-[11px] font-medium text-slate-600 border border-slate-200/60">
