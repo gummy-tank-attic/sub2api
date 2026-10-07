@@ -12,6 +12,9 @@ import shutil
 import sys
 
 def main():
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+
     base_dir = os.path.dirname(os.path.abspath(__file__))
     source_dir = os.path.dirname(base_dir)
     frontend_dir = os.path.join(source_dir, "frontend")
@@ -37,7 +40,7 @@ def main():
         shutil.copy2(src_path, dest_path)
         print(f"[+] Restored: {dest_rel}")
 
-    print("[✓] All FXVIA customizations verified and synchronized successfully!")
+    print("[OK] All FXVIA customizations verified and synchronized successfully!")
 
 if __name__ == "__main__":
     main()
