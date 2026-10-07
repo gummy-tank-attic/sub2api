@@ -175,22 +175,6 @@
               {{ t('home.heroDescription') }}
             </p>
 
-            <!-- Three Cohesive Feature Badges -->
-            <div class="flex flex-wrap items-center justify-center lg:justify-start gap-2.5 pt-1 text-xs font-medium text-slate-600">
-              <span class="inline-flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 border border-slate-200/80 shadow-xs">
-                <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
-                <span>{{ t('home.tags.subscriptionToApi') }}</span>
-              </span>
-              <span class="inline-flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 border border-slate-200/80 shadow-xs">
-                <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
-                <span>{{ t('home.tags.stickySession') }}</span>
-              </span>
-              <span class="inline-flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 border border-slate-200/80 shadow-xs">
-                <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
-                <span>{{ t('home.tags.realtimeBilling') }}</span>
-              </span>
-            </div>
-
             <!-- Primary Call to Action -->
             <div class="flex items-center justify-center lg:justify-start pt-3">
               <router-link
