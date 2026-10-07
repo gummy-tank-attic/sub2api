@@ -31,8 +31,8 @@ function initThemeClass() {
 }
 
 async function bootstrap() {
-  // Default locale to English for global KYB compliance
-  if (localStorage.getItem('sub2api_locale') !== 'en') {
+  // Default locale to English for global KYB compliance if not explicitly chosen
+  if (!localStorage.getItem('sub2api_locale')) {
     localStorage.setItem('sub2api_locale', 'en');
   }
 
