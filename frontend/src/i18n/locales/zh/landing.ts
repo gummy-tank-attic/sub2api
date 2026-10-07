@@ -12,14 +12,20 @@ export default {
     switchToDark: '切换到深色模式',
     dashboard: '控制台',
     login: '登录',
+    signIn: '登录',
+    console: '控制台',
     getStarted: '立即开始',
     goToDashboard: '进入控制台',
+    gatewayActive: '网关在线',
+    termsOfService: '服务条款',
+    privacyPolicy: '隐私政策',
+    refundPolicy: '退款政策',
     // 新增：面向用户的价值主张
-    heroSubtitle: '一个密钥，畅用多个 AI 模型',
-    heroDescription: '无需管理多个订阅账号，一站式接入 Claude、GPT、Gemini 等主流 AI 服务',
+    heroSubtitle: '统一 API · 畅连主流 AI 模型',
+    heroDescription: '聚合接入，智能路由与按量透明计费。',
     tags: {
-      subscriptionToApi: '接口网关路由',
-      stickySession: '会话保持',
+      subscriptionToApi: '统一 API',
+      stickySession: '智能路由',
       realtimeBilling: '按量计费'
     },
     // 用户痛点区块
@@ -50,12 +56,15 @@ export default {
       subtitle: '简单三步，开始省心使用 AI'
     },
     features: {
-      unifiedGateway: '一键接入',
-      unifiedGatewayDesc: '获取一个 API 密钥，即可调用所有已接入的 AI 模型，无需分别申请。',
-      multiAccount: '稳定可靠',
-      multiAccountDesc: '智能调度多个上游通道，自动容灾和负载均衡，保障服务高可用。',
-      balanceQuota: '用多少付多少',
-      balanceQuotaDesc: '按实际使用量计费，支持设置配额上限，团队用量一目了然。'
+      unifiedGateway: '单一 API 密钥',
+      unifiedGatewayDesc: '使用一个 API 密钥，轻松调用平台支持的全部 AI 模型。',
+      unifiedGatewayTag: '极简集成 • 统一调用凭证',
+      multiAccount: '智能调度路由',
+      multiAccountDesc: '智能调度多上游通道，自动容灾与负载均衡，保障服务高可用。',
+      multiAccountTag: '高可用保障 • 多区域容灾冗余',
+      balanceQuota: '按量灵活计费',
+      balanceQuotaDesc: '按实际使用量计费，随时掌控用量与成本明细。',
+      balanceQuotaTag: '透明数据 • 实时计量明细'
     },
     // 优势对比
     comparison: {

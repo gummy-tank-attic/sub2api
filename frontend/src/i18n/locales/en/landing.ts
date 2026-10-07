@@ -12,8 +12,14 @@ export default {
     switchToDark: 'Switch to Dark Mode',
     dashboard: 'Dashboard',
     login: 'Login',
+    signIn: 'Sign In',
+    console: 'Console',
     getStarted: 'Get Started',
     goToDashboard: 'Go to Dashboard',
+    gatewayActive: 'Gateway Active',
+    termsOfService: 'Terms of Service',
+    privacyPolicy: 'Privacy Policy',
+    refundPolicy: 'Refund Policy',
     // User-focused value proposition
     heroSubtitle: 'One API. Multiple AI Models.',
     heroDescription: 'Unified access, smart routing, and usage-based billing.',
@@ -52,10 +58,13 @@ export default {
     features: {
       unifiedGateway: 'One API Key',
       unifiedGatewayDesc: 'Access supported AI models with a single key.',
+      unifiedGatewayTag: 'Single integration • Unified token',
       multiAccount: 'Smart Routing',
       multiAccountDesc: 'Automatic routing and failover across upstream providers.',
+      multiAccountTag: 'High availability • Multi-region redundancy',
       balanceQuota: 'Pay As You Go',
-      balanceQuotaDesc: 'Pay for what you use. Track usage and costs.'
+      balanceQuotaDesc: 'Pay for what you use. Track usage and costs.',
+      balanceQuotaTag: 'Transparent metrics • Real-time metering'
     },
     // Comparison section
     comparison: {

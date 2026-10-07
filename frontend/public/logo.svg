@@ -1,12 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3588 809" fill="none" role="img" aria-label="FXVIA">
-  <defs>
-    <linearGradient id="fxvia-carmine-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#E11D48"/>
-      <stop offset="55%" stop-color="#DC2626"/>
-      <stop offset="100%" stop-color="#991B1B"/>
-    </linearGradient>
-  </defs>
-  <g fill="url(#fxvia-carmine-grad)">
+  <g fill="#cc0000">
     <!-- F -->
     <g transform="translate(17, 759) scale(1, -1)">
       <path d="M63 0V709H572V558H242V416H556V265H242V0Z"/>
