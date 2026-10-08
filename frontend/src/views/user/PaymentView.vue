@@ -39,21 +39,6 @@
           </div>
           <!-- Top-up Tab -->
           <template v-else-if="activeTab === 'recharge'">
-            <!-- 充值换算 醒目提示条 -->
-            <div class="rounded-xl border border-amber-300/80 bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 p-4 shadow-sm dark:border-amber-700/50 dark:from-amber-950/40 dark:via-orange-950/30 dark:to-amber-950/40">
-              <div class="flex items-center gap-3">
-                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-500 text-white shadow-sm font-bold">
-                  <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                </div>
-                <div class="text-sm sm:text-base font-semibold text-amber-950 dark:text-amber-100">
-                  <span class="text-amber-900 dark:text-amber-200">充值换算：</span>
-                  <span>支付 <span class="text-amber-600 dark:text-amber-400 font-bold">$1.00</span>，实际获得 <span class="text-amber-600 dark:text-amber-400 font-bold">$7.00</span> 账户额度。</span>
-                </div>
-              </div>
-            </div>
-
             <!-- Recharge Account Card -->
             <div class="card p-5">
               <p class="text-xs font-medium text-gray-400 dark:text-gray-500">{{ t('payment.rechargeAccount') }}</p>
@@ -698,7 +683,7 @@ const payBaseAmount = computed(() => bonusQuote.value.payBase)
 const discountAmount = computed(() => roundPaymentAmount(validAmount.value - payBaseAmount.value, selectedCurrency.value))
 const creditedAmount = computed(() => bonusQuote.value.credited)
 const showBonusRow = computed(() => bonusQuote.value.mode !== 'discount' && bonusQuote.value.bonus > 0)
-const showCreditedBalance = computed(() => balanceRechargeMultiplier.value !== 1 || bonusQuote.value.percent > 0)
+const showCreditedBalance = computed(() => selectedCurrency.value !== 'USD' || balanceRechargeMultiplier.value !== 1 || bonusQuote.value.percent > 0)
 
 const methodOptions = computed<PaymentMethodOption[]>(() =>
   enabledMethods.value.map((type) => {

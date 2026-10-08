@@ -100,6 +100,7 @@ func GetBasePaymentType(t string) string {
 // CreatePaymentRequest holds the parameters for creating a new payment.
 type CreatePaymentRequest struct {
 	OrderID     string // Internal order ID
+	OrderType   string // Server-side order purpose (balance or subscription)
 	Amount      string // 支付金额，按服务商实例配置的币种解释
 	PaymentType string // e.g. "alipay", "wxpay", "stripe"
 	Subject     string // Product description
