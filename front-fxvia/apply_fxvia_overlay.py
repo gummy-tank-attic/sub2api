@@ -25,6 +25,10 @@ def main():
         ("components/logo.fxvia.svg", "public/logo.svg"),
         ("locales/zh/landing.ts", "src/i18n/locales/zh/landing.ts"),
         ("locales/en/landing.ts", "src/i18n/locales/en/landing.ts"),
+        ("seo/robots.txt", "public/robots.txt"),
+        ("seo/sitemap.xml", "public/sitemap.xml"),
+        ("seo/index.html", "index.html"),
+        ("seo/googled5aff7cfe040e1a9.html", "public/googled5aff7cfe040e1a9.html"),
     ]
 
     print("[*] Applying FXVIA brand overlays...")

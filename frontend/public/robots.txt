@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /api
+Disallow: /setup
+Disallow: /auth/
+
+Sitemap: https://www.fxvia.com/sitemap.xml
