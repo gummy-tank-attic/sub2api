@@ -288,7 +288,13 @@ export default {
   // Payment System
   payment: {
     title: 'Recharge / Subscription',
+    rechargeGuideTitle: 'Recharge guide',
+    rechargeGuideText: 'Each {amount} recharged gives you ${credit} in account credit. See the breakdown below for offers or fees.',
+    accountCreditPurpose: 'Account credit is displayed in USD and pays for model usage.',
+    accountCreditReceived: 'Account credit received (USD)',
+    cryptoPaymentGuide: 'Pay with USDT / USDC: the next page converts the CNY order amount into coins and shows the receiving address. Use the exact coin, network and amount shown there.',
     amountLabel: 'Amount',
+    rechargeAmount: 'Recharge amount ({currency})',
     paymentAmount: 'Payment Amount',
     creditedBalance: 'Credited Balance',
     rechargeBonus: {
@@ -305,6 +311,7 @@ export default {
     fee: 'Fee',
     actualPay: 'Actual Payment',
     createOrder: 'Confirm Payment',
+    goToPayment: 'Go to payment: recharge {amount}',
     methods: {
       easypay: 'EasyPay',
       alipay: 'Alipay',

@@ -50,6 +50,11 @@
             </div>
             <template v-else>
             <div class="card p-6">
+              <div class="mb-5 rounded-xl border border-primary-100 bg-primary-50/70 px-4 py-3 text-sm leading-relaxed text-gray-700">
+                <p class="font-semibold text-gray-900">{{ t('payment.rechargeGuideTitle') }}</p>
+                <p class="mt-1">{{ t('payment.rechargeGuideText', { amount: formatSelectedPaymentAmount(1), credit: balanceRechargeMultiplier.toFixed(2) }) }}</p>
+                <p class="mt-1 text-xs text-gray-500">{{ t('payment.accountCreditPurpose') }}</p>
+              </div>
               <!-- 充值赠送活动文案（后台 Markdown 配置，空则不渲染） -->
               <div
                 v-if="renderedBonusNotice"
@@ -75,11 +80,12 @@
                 :selected="selectedMethod"
                 @select="selectedMethod = $event"
               />
+              <p v-if="isCryptoRecharge" class="mt-3 text-sm leading-relaxed text-gray-600">{{ t('payment.cryptoPaymentGuide') }}</p>
             </div>
             <div v-if="validAmount > 0" class="card p-6">
               <div class="space-y-2 text-sm">
                 <div class="flex justify-between">
-                  <span class="text-gray-500 dark:text-gray-400">{{ t('payment.paymentAmount') }}</span>
+                  <span class="text-gray-500 dark:text-gray-400">{{ t('payment.rechargeAmount', { currency: selectedCurrency }) }}</span>
                   <span :class="discountAmount > 0 ? 'text-gray-400 line-through dark:text-gray-500' : 'text-gray-900 dark:text-white'">{{ formatSelectedPaymentAmount(validAmount) }}</span>
                 </div>
                 <div v-if="discountAmount > 0" class="flex justify-between" data-testid="recharge-discount-row">
@@ -99,7 +105,7 @@
                   <span class="font-medium text-red-600 dark:text-red-400">+${{ bonusQuote.bonus.toFixed(2) }}</span>
                 </div>
                 <div v-if="showCreditedBalance" class="flex justify-between" :class="{ 'border-t border-gray-200 pt-2 dark:border-dark-600': !showActualPay && !showBonusRow }" data-testid="recharge-credited-row">
-                  <span class="text-gray-500 dark:text-gray-400">{{ t('payment.creditedBalance') }}</span>
+                  <span class="text-gray-500 dark:text-gray-400">{{ t('payment.accountCreditReceived') }}</span>
                   <span :class="bonusQuote.percent > 0 ? 'font-semibold text-gray-900 dark:text-white' : 'text-gray-900 dark:text-white'">${{ creditedAmount.toFixed(2) }}</span>
                 </div>
                 <p v-if="balanceRechargeMultiplier !== 1" class="border-t border-gray-200 pt-2 text-xs text-gray-500 dark:border-dark-600 dark:text-gray-400">
@@ -124,7 +130,7 @@
                 <span class="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
                 {{ t('common.processing') }}
               </span>
-              <span v-else>{{ t('payment.createOrder') }} {{ formatSelectedPaymentAmount(totalAmount) }}</span>
+              <span v-else>{{ isCryptoRecharge ? t('payment.goToPayment', { amount: formatSelectedPaymentAmount(totalAmount) }) : `${t('payment.createOrder')} ${formatSelectedPaymentAmount(totalAmount)}` }}</span>
             </button>
             </template>
           </template>
@@ -626,6 +632,7 @@ const globalMaxAmount = computed(() => {
 // Selected method's limits (for validation and error messages)
 const selectedLimit = computed(() => visibleMethods.value[selectedMethod.value])
 const selectedCurrency = computed(() => normalizePaymentCurrency(selectedLimit.value?.currency))
+const isCryptoRecharge = computed(() => ['usdt_trc20', 'usdt_bep20', 'usdc_base'].includes(selectedMethod.value))
 const localeCode = computed(() => {
   const raw = i18n.locale as unknown
   if (typeof raw === 'string') return raw

@@ -312,7 +312,13 @@ export default {
   // Payment System
   payment: {
     title: '充值/订阅',
+    rechargeGuideTitle: '充值说明',
+    rechargeGuideText: '每充值 {amount}，获得 ${credit} 站内额度；优惠或手续费详见下方明细。',
+    accountCreditPurpose: '站内额度以美元显示，用于支付模型调用费用。',
+    accountCreditReceived: '到账站内额度（美元）',
+    cryptoPaymentGuide: '用 USDT / USDC 支付：下一步会将人民币订单金额按汇率换算为应付币数，并显示收款地址。请按付款页的币种、网络和准确数量转账。',
     amountLabel: '充值金额',
+    rechargeAmount: '充值金额（{currency}）',
     paymentAmount: '支付金额',
     creditedBalance: '到账余额',
     rechargeBonus: {
@@ -329,6 +335,7 @@ export default {
     fee: '手续费',
     actualPay: '实付金额',
     createOrder: '确认支付',
+    goToPayment: '前往支付页面：充值 {amount}',
     methods: {
       easypay: '易支付',
       alipay: '支付宝',
