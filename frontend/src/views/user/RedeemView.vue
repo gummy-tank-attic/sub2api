@@ -1,8 +1,8 @@
 <template>
-  <AppLayout>
+  <component :is="embedded ? 'div' : AppLayout">
     <div class="mx-auto max-w-5xl space-y-6 pb-12">
       <!-- 顶部账户与汇率信息横幅 (匹配站点 Primary 青绿色系) -->
-      <div class="relative overflow-hidden rounded-2xl border border-primary-100 bg-gradient-to-br from-primary-50/60 via-teal-50/30 to-white p-6 sm:p-8 shadow-sm">
+      <div v-if="!embedded" class="relative overflow-hidden rounded-2xl border border-primary-100 bg-gradient-to-br from-primary-50/60 via-teal-50/30 to-white p-6 sm:p-8 shadow-sm">
         <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div class="space-y-2">
             <div class="inline-flex items-center gap-2 rounded-full border border-primary-200/80 bg-white px-3 py-1 text-xs font-semibold text-primary-700 shadow-sm">
@@ -43,7 +43,29 @@
       </div>
 
       <!-- 模块 1：挑选充值卡面额 (CNY充值货架) -->
-      <div class="space-y-4">
+      <div v-if="embedded && !codeOnly" class="card p-6">
+        <h2 class="text-sm font-semibold text-gray-900">选择充值额度</h2>
+        <p class="mt-1 text-sm font-medium text-primary-700">充值比例：1 元人民币 = $1 站内额度</p>
+        <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-5">
+          <button v-for="card in cards" :key="card.amount" type="button" class="rounded-xl border border-gray-200 bg-white p-4 text-center transition hover:border-primary-500 hover:bg-primary-50" @click="openShop(card)">
+            <span class="block text-xl font-semibold text-gray-900">${{ card.amount }}</span>
+            <span class="mt-1 block text-xs text-gray-500">站内额度</span>
+            <span class="mt-3 block text-sm font-medium text-primary-700">购买 ¥{{ card.price }}</span>
+          </button>
+        </div>
+        <p class="mt-4 text-sm text-gray-600">点击面额，前往云猫使用人民币购买充值卡。付款后复制卡密，回到下方兑换到账。</p>
+      </div>
+      <div v-if="embedded && !codeOnly" class="rounded-xl border border-amber-200/80 bg-amber-50/60 p-4 text-xs leading-relaxed text-amber-900">
+        <div class="mb-2 flex items-center gap-1.5 font-semibold text-amber-800">
+          <span aria-hidden="true">⚠</span>
+          <span class="text-sm">充值须知与服务说明</span>
+        </div>
+        <ol class="list-decimal list-inside space-y-1.5 text-gray-700">
+          <li><strong class="text-amber-950">不可退款声明</strong>：由于虚拟商品的特殊性质，已充值额度不提供退款服务。</li>
+          <li><strong class="text-amber-950">小额测试建议</strong>：为保障您的权益，建议您首次先进行小额充值测试，确认符合需求后再按需充值。</li>
+        </ol>
+      </div>
+      <div v-if="!embedded" class="space-y-4">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2">
             <div class="flex h-7 w-7 items-center justify-center rounded-lg bg-primary-600 text-white shadow-sm font-semibold text-sm">
@@ -99,11 +121,11 @@
       <!-- 模块 2：原地秒充 · 兑换卡密 -->
       <div id="redeem-section" class="rounded-2xl border border-primary-200/80 bg-gradient-to-br from-primary-50/30 via-white to-white p-6 shadow-sm">
         <div class="flex items-center gap-2 mb-4">
-          <div class="flex h-7 w-7 items-center justify-center rounded-lg bg-primary-600 text-white shadow-sm font-semibold text-sm">
+          <div v-if="!embedded" class="flex h-7 w-7 items-center justify-center rounded-lg bg-primary-600 text-white shadow-sm font-semibold text-sm">
             2
           </div>
           <div>
-            <h2 class="text-lg font-bold text-gray-900">原地秒充 · 兑换卡密立即到账</h2>
+            <h2 class="text-lg font-bold text-gray-900">{{ embedded ? '已有卡密？在这里兑换' : '原地秒充 · 兑换卡密立即到账' }}</h2>
             <p class="text-xs text-gray-500">在云猫付款成功后复制得到的卡密，在此处粘贴即可，无需跳转其他页面</p>
           </div>
         </div>
@@ -214,7 +236,7 @@
       </div>
 
       <!-- 模块 3：关于兑换码须知 (原兑换页规则，100% 完整保留) -->
-      <div class="rounded-2xl border border-primary-100 bg-primary-50/30 p-6 shadow-sm">
+      <div v-if="!embedded" class="rounded-2xl border border-primary-100 bg-primary-50/30 p-6 shadow-sm">
         <div class="flex items-start gap-4">
           <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-100 text-primary-600">
             <Icon name="infoCircle" size="md" />
@@ -383,11 +405,13 @@
         </div>
       </div>
     </div>
-  </AppLayout>
+  </component>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+
+withDefaults(defineProps<{ embedded?: boolean; codeOnly?: boolean }>(), { embedded: false, codeOnly: false })
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import { useAppStore } from '@/stores/app'

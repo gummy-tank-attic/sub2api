@@ -5,7 +5,8 @@
     </label>
     <div
       data-testid="payment-method-grid"
-      class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4"
+      class="grid gap-3 sm:grid-cols-3 lg:grid-cols-4"
+      :class="cryptoOnly ? 'grid-cols-1' : 'grid-cols-2'"
     >
       <button
         v-for="method in sortedMethods"
@@ -69,6 +70,9 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
+const cryptoOnly = computed(() => props.methods.length > 0 && props.methods.every(method =>
+  ['usdt_trc20', 'usdt_bep20', 'usdc_base'].includes(method.type)
+))
 
 const METHOD_ICONS: Record<string, string> = {
   alipay: alipayIcon,

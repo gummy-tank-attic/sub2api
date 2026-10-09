@@ -256,7 +256,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/redeem',
     name: 'Redeem',
-    component: () => import('@/views/user/RedeemView.vue'),
+    redirect: { path: '/purchase', query: { channel: 'code' } },
     meta: {
       requiresAuth: true,
       requiresAdmin: false,
@@ -317,19 +317,18 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/purchase',
     name: 'PurchaseSubscription',
-    component: () => import('@/views/user/PaymentView.vue'),
+    component: () => import('@/views/user/RechargeView.vue'),
     meta: {
       requiresAuth: true,
       requiresAdmin: false,
       title: 'Purchase Subscription',
-      titleKey: 'nav.buySubscription',
-      descriptionKey: 'purchase.description',
-      requiresPayment: true
+      titleKey: 'nav.recharge',
+      descriptionKey: 'payment.unifiedRechargeDescription'
     }
   },
   {
     path: '/cny-recharge',
-    redirect: '/redeem'
+    redirect: { path: '/purchase', query: { channel: 'cny' } }
   },
   {
     path: '/orders',

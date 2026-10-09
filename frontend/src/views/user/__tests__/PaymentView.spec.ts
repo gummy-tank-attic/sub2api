@@ -4,6 +4,7 @@ import PaymentView from '../PaymentView.vue'
 import { PAYMENT_RECOVERY_STORAGE_KEY } from '@/components/payment/paymentFlow'
 import { formatPaymentAmount } from '@/components/payment/currency'
 import AmountInput from '@/components/payment/AmountInput.vue'
+import PaymentMethodSelector from '@/components/payment/PaymentMethodSelector.vue'
 import SubscriptionPlanCard from '@/components/payment/SubscriptionPlanCard.vue'
 import en from '@/i18n/locales/en'
 import zh from '@/i18n/locales/zh'
@@ -501,6 +502,41 @@ describe('PaymentView subscription confirmation amounts', () => {
   })
 })
 
+describe('PaymentView direct crypto checkout', () => {
+  afterEach(() => {
+    appStoreState.setPublicSettings(undefined)
+    localStorage.clear()
+  })
+  it('creates one balance order with the chosen amount and network and prevents duplicate clicks', async () => {
+    vi.useRealTimers()
+    routeState.query = {}
+    appStoreState.setPublicSettings({ subscription_enabled: false })
+    localStorage.clear()
+    createOrder.mockReset()
+    let finishOrder!: (value: ReturnType<typeof jsapiOrderFixture>) => void
+    createOrder.mockImplementation(() => new Promise(resolve => { finishOrder = resolve }))
+    const limit = { ...checkoutInfoFixture().data.methods.wxpay, currency: 'CNY' }
+    getCheckoutInfo.mockResolvedValue(checkoutInfoFixture({ methods: { usdt_trc20: limit, usdc_base: limit } }))
+    const wrapper = shallowMount(PaymentView, {
+      props: { embedded: true },
+      global: { stubs: { Teleport: true, Transition: false } },
+    })
+    await flushPromises()
+    expect(createOrder).not.toHaveBeenCalled()
+    wrapper.getComponent(AmountInput).vm.$emit('update:modelValue', 50)
+    await flushPromises()
+    const selector = wrapper.getComponent(PaymentMethodSelector)
+    selector.vm.$emit('select', 'usdc_base')
+    selector.vm.$emit('select', 'usdt_trc20')
+    await flushPromises()
+    expect(createOrder).toHaveBeenCalledTimes(1)
+    expect(createOrder).toHaveBeenCalledWith(expect.objectContaining({ amount: 50, order_type: 'balance', payment_type: 'usdc_base' }))
+    finishOrder({ ...jsapiOrderFixture('crypto-test'), payment_type: 'usdc_base' })
+    await flushPromises()
+    wrapper.unmount()
+  })
+})
+
 describe('PaymentView payment recovery', () => {
   beforeEach(() => {
     vi.useRealTimers()
@@ -845,7 +881,7 @@ describe('PaymentView subscription feature flag', () => {
 
     expect(tabLabels(wrapper)).toEqual([])
     expect(wrapper.findAllComponents(SubscriptionPlanCard)).toHaveLength(0)
-    expect(wrapper.text()).toContain('payment.rechargeAccount')
+    expect(wrapper.findComponent(AmountInput).exists()).toBe(true)
   })
 
   it('shows an unavailable notice instead of a doomed top-up form when balance recharge is disabled too', async () => {
@@ -855,7 +891,7 @@ describe('PaymentView subscription feature flag', () => {
     expect(tabLabels(wrapper)).toEqual([])
     expect(wrapper.findAllComponents(SubscriptionPlanCard)).toHaveLength(0)
     expect(wrapper.text()).not.toContain('payment.confirmSubscription')
-    expect(wrapper.text()).not.toContain('payment.rechargeAccount')
+    expect(wrapper.findComponent(AmountInput).exists()).toBe(false)
     expect(wrapper.text()).toContain('payment.billingUnavailable')
     wrapper.unmount()
   })
@@ -869,7 +905,7 @@ describe('PaymentView subscription feature flag', () => {
 
     expect(tabLabels(wrapper)).toEqual([])
     expect(wrapper.findAllComponents(SubscriptionPlanCard)).toHaveLength(0)
-    expect(wrapper.text()).toContain('payment.rechargeAccount')
+    expect(wrapper.findComponent(AmountInput).exists()).toBe(true)
     wrapper.unmount()
   })
 
@@ -882,7 +918,7 @@ describe('PaymentView subscription feature flag', () => {
     await flushPromises()
 
     expect(wrapper.text()).not.toContain('payment.billingUnavailable')
-    expect(wrapper.text()).not.toContain('payment.rechargeAccount')
+    expect(wrapper.findComponent(AmountInput).exists()).toBe(false)
     expect(wrapper.findAllComponents(SubscriptionPlanCard).length).toBeGreaterThan(0)
     wrapper.unmount()
   })
