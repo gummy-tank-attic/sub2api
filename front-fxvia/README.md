@@ -1,56 +1,28 @@
-﻿# FXVIA 前端品牌定制层与上游升级保护规范
+# FXVIA 前端定制层
 
-本目录专门用于隔离与持久化保护 **FXVIA** 的全套前端定制设计与品牌资产，实现与官方开源上游 `sub2api` 的解耦。
+本目录保存 FXVIA 品牌资产、首页和登录布局的定制副本。升级与生产发布统一遵循私有运维仓库的 ops/UPGRADE.md；本目录不维护第二套发布流程。
 
----
+## 资产与恢复工具
 
-## 🛡️ 为什么升级 sub2api 时主页绝对不会丢失？
+- components/：HomeView、AuthLayout、logo 的定制副本。
+- locales/：首页中英文文案。
+- seo/：入口 HTML、robots、sitemap 和站点验证文件。
+- brand.css：品牌样式。
+- apply_fxvia_overlay.py：将映射中的定制文件复制到 frontend。
 
-1. **独立 Git 分支隔离**：
-   - 本项目运行在 `gummy-tank-attic/sub2api` 独立仓库的 `main` 分支。
-   - 所有定制化均通过原子 Commit 提交历史永久留存。
-   - 上游更新时，通过标准 `git merge upstream/main` 进行功能同步，Git 会自动保留定制提交，绝不会强行覆写。
+Git 历史和备份有助恢复，但不保证合并后定制或新版修复自动正确保留。
 
-2. **独立生产镜像隔离**：
-   - 生产环境采用专属容器镜像构建流水线：`ghcr.io/gummy-tank-attic/sub2api-fxvia@sha256:...`。
-   - 独立镜像带有完整编译后的 FXVIA 定制页面，不受官方公共镜像变动影响。
+## 升级时如何使用
 
-3. **物理目录持久备份**：
-   - `front-fxvia/components/HomeView.fxvia.vue`（定制极简居中主页）
-   - `front-fxvia/components/AuthLayout.fxvia.vue`（登录/注册鉴权页官方红标）
-   - `front-fxvia/components/logo.fxvia.svg`（FXVIΛ 官方红色纯字标矢量图）
-   - `front-fxvia/locales/`（中英文双语高转化国际化文案字典）
-   - `front-fxvia/brand.css`（全局品牌样式层）
+1. 在升级分支合并固定上游 tag/commit，检查受影响定制。
+2. 比较定制副本、当前目标文件与新版上游，尤其 AuthLayout、index.html 和页面逻辑。先适配上游行为及安全修复。
+3. 只恢复确有需要的文件；脚本会覆盖全部已有映射源，不应合并后无条件运行。全部映射均经审查、确需恢复时才执行：
 
-4. **一键同步与恢复工具**：
-   - 在任何升级、合并冲突或重置后，只需执行以下命令即可一秒还原全部品牌资产：
-   ```bash
-   python front-fxvia/apply_fxvia_overlay.py
-   ```
+```bash
+python front-fxvia/apply_fxvia_overlay.py
+```
 
----
+4. 审查最终 diff，运行受影响测试与构建。脚本输出成功只代表复制完成，不代表兼容性或安全性通过。
+5. 上游升级自带的界面变化已有用户长期授权，无需重复看样；核对并保留自制主页与品牌。主动修改本地定制界面仍先看样，再一次性提交与构建。发布固定 digest，只部署已经验收的候选产物。
 
-## 🚀 标准上游平滑升级步骤
-
-1. **拉取上游代码**：
-   ```bash
-   git fetch upstream
-   git merge upstream/main
-   ```
-2. **应用并检查 FXVIA 定制层**：
-   ```bash
-   python front-fxvia/apply_fxvia_overlay.py
-   ```
-3. **本地/测试构建验证**：
-   ```bash
-   cd frontend && npm run build
-   cd ../backend && go test ./...
-   ```
-4. **提交并推送至专属分支**：
-   ```bash
-   git add .
-   git commit -m "chore(upstream): sync upstream and restore FXVIA brand overlay"
-   git push origin main
-   ```
-5. **部署生效**：
-   GitHub Actions 自动完成新镜像构建，部署时按明确镜像 digest 更新服务器，平滑无缝。
+默认保留已发布历史，不 rebase/强推 main。CI 不可用时使用运维规范规定的替代验证；不以无分支保护、无 Actions 检查为由跳过测试或扫描。
