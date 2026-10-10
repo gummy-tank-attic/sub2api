@@ -33,8 +33,10 @@ describe('harvest availability', () => {
   })
 
   it('shows clock-only recovery on the same day', () => {
-    const now = new Date('2026-09-20T23:13:00+08:00')
-    expect(harvestAvailabilityRecoverClock('2026-09-20T23:52:00+08:00', now)).toEqual({ clock: '23:52' })
-    expect(harvestAvailabilityRecoverClock('2026-09-21T00:40:00+08:00', now)).toEqual({ clock: '00:40', date: '09-21' })
+    const now = new Date(2026, 8, 20, 23, 13, 0)
+    const targetSameDay = new Date(2026, 8, 20, 23, 52, 0).toString()
+    const targetNextDay = new Date(2026, 8, 21, 0, 40, 0).toString()
+    expect(harvestAvailabilityRecoverClock(targetSameDay, now)).toEqual({ clock: '23:52' })
+    expect(harvestAvailabilityRecoverClock(targetNextDay, now)).toEqual({ clock: '00:40', date: '09-21' })
   })
 })

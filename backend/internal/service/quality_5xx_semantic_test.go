@@ -153,7 +153,7 @@ func (r *qualityRecentPlanRepo) ListByAccountID(context.Context, int64) ([]*Sche
 
 func TestQuality5xxDoesNotSkipRecentlyCompletedPlan(t *testing.T) {
 	plan := pelicanPlan()
-	recent, future := time.Now(), time.Now().Add(time.Hour)
+	recent, future := time.Now().Add(-5*time.Minute), time.Now().Add(time.Hour)
 	plan.LastRunAt, plan.NextRunAt = &recent, &future
 	plan.PelicanConfig = stateProbePlanConfig()
 	plan.PelicanConfig.Quality = &QualityPolicy{Action: "disable_scheduling", TriggerOnUpstream5xx: true}
