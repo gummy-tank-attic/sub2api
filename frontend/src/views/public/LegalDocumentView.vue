@@ -2,8 +2,19 @@
   <div class="min-h-screen bg-gray-50 text-gray-900 dark:bg-dark-950 dark:text-white">
     <header class="border-b border-gray-200 bg-white/95 dark:border-dark-800 dark:bg-dark-900/95">
       <div class="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
-        <RouterLink :to="{ name: 'Home' }" class="flex min-w-0 items-center">
-          <img :src="siteLogo || '/logo.svg'" :alt="siteName" class="h-7 w-auto max-w-[130px] object-contain" />
+        <RouterLink to="/home" class="flex min-w-0 items-center gap-3">
+          <template v-if="settings">
+            <span class="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200 dark:bg-dark-800 dark:ring-dark-700">
+              <img :src="siteLogo || '/logo.svg'" alt="Logo" class="h-full w-full object-contain" />
+            </span>
+            <span class="truncate text-base font-semibold text-gray-950 dark:text-white">
+              {{ siteName }}
+            </span>
+          </template>
+          <template v-else>
+            <span class="h-10 w-10 flex-shrink-0 animate-pulse rounded-xl bg-gray-200 dark:bg-dark-700" aria-hidden="true"></span>
+            <span class="h-5 w-28 animate-pulse rounded bg-gray-200 dark:bg-dark-700" aria-hidden="true"></span>
+          </template>
         </RouterLink>
         <RouterLink
           to="/login"
@@ -91,9 +102,6 @@ import { useAppStore } from '@/stores/app'
 import type { LoginAgreementDocument } from '@/types'
 import zhAdminCompliance from '../../../../docs/legal/admin-compliance.zh.md?raw'
 import enAdminCompliance from '../../../../docs/legal/admin-compliance.en.md?raw'
-import enTerms from '../../../../docs/legal/terms.en.md?raw'
-import enPrivacy from '../../../../docs/legal/privacy.en.md?raw'
-import enRefund from '../../../../docs/legal/refund.en.md?raw'
 
 type LegalDocumentIcon = 'document' | 'shield' | 'globe' | 'cog'
 
@@ -112,7 +120,7 @@ marked.setOptions({
 const documentId = computed(() => String(route.params.documentId || ''))
 const isAdminComplianceDocument = computed(() => documentId.value === 'admin-compliance')
 const documents = computed(() => settings.value?.login_agreement_documents ?? [])
-const siteName = computed(() => settings.value?.site_name || 'FXVIA')
+const siteName = computed(() => settings.value?.site_name || 'Sub2API')
 const siteLogo = computed(() => sanitizeUrl(settings.value?.site_logo || '', {
   allowRelative: true,
   allowDataUrl: true,
@@ -132,31 +140,9 @@ const currentDocument = computed<LoginAgreementDocument | null>(() => {
       content_md: getLocale() === 'zh' ? zhAdminCompliance : enAdminCompliance
     }
   }
-  const id = documentId.value.toLowerCase()
+  const id = documentId.value
   if (!id) {
     return null
-  }
-    // Standard built-in legal policies
-  if (id === 'terms' || id === 'terms-of-service') {
-    return {
-      id: 'terms',
-      title: 'Terms of Service',
-      content_md: enTerms
-    }
-  }
-  if (id === 'privacy' || id === 'privacy-policy') {
-    return {
-      id: 'privacy',
-      title: 'Privacy Policy',
-      content_md: enPrivacy
-    }
-  }
-  if (id === 'refund' || id === 'refund-policy') {
-    return {
-      id: 'refund',
-      title: 'Refund & Cancellation Policy',
-      content_md: enRefund
-    }
   }
   return documents.value.find((doc) => doc.id === id) ?? null
 })
@@ -188,17 +174,11 @@ const documentIcon = computed<LegalDocumentIcon>(() => {
 
 onMounted(async () => {
   loadError.value = false
-  loading.value = !currentDocument.value
-  try {
-    await appStore.fetchPublicSettings()
-  } catch {
-    // Non-blocking: fallback documents are already loaded
-  } finally {
-    loading.value = false
-    if (!currentDocument.value) {
-      loadError.value = true
-    }
+  const loadedSettings = await appStore.fetchPublicSettings()
+  if (!loadedSettings) {
+    loadError.value = true
   }
+  loading.value = false
 })
 </script>
 

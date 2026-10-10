@@ -1,5 +1,5 @@
 <template>
-  <component :is="embedded ? 'div' : AppLayout">
+  <AppLayout>
     <div class="mx-auto max-w-4xl space-y-6">
       <div v-if="loading" class="flex items-center justify-center py-20">
         <div class="h-8 w-8 animate-spin rounded-full border-4 border-primary-500 border-t-transparent"></div>
@@ -39,6 +39,12 @@
           </div>
           <!-- Top-up Tab -->
           <template v-else-if="activeTab === 'recharge'">
+            <!-- Recharge Account Card -->
+            <div class="card p-5">
+              <p class="text-xs font-medium text-gray-400 dark:text-gray-500">{{ t('payment.rechargeAccount') }}</p>
+              <p class="mt-1 text-base font-semibold text-gray-900 dark:text-white">{{ user?.username || '' }}</p>
+              <p class="mt-0.5 text-sm font-medium text-green-600 dark:text-green-400">{{ t('payment.currentBalance') }}: {{ user?.balance?.toFixed(2) || '0.00' }}</p>
+            </div>
             <div v-if="enabledMethods.length === 0" class="card py-16 text-center">
               <p class="text-gray-500 dark:text-gray-400">{{ t('payment.notAvailable') }}</p>
             </div>
@@ -53,35 +59,27 @@
               ></div>
               <AmountInput
                 v-model="amount"
-                :amounts="[10, 50, 100, 200, 500]"
+                :amounts="[10, 20, 50, 100, 200, 500, 1000, 2000, 5000]"
                 :min="globalMinAmount"
                 :max="globalMaxAmount"
                 :bonus-tiers="rechargeBonusTiers"
                 :bonus-mode="rechargeBonusMode"
                 :multiplier="balanceRechargeMultiplier"
                 :currency="selectedCurrency"
-                :credit-input="isCryptoCreditInput"
-                :allow-custom="!embedded"
               />
               <p v-if="amountError" class="mt-2 text-xs text-amber-600 dark:text-amber-300">{{ amountError }}</p>
-              <div class="mt-4 border-t border-gray-100 pt-4 text-sm">
-                <p v-if="validAmount > 0" class="font-medium text-gray-900">{{ isCryptoCreditInput ? t('payment.creditPurchaseSummary', { credit: creditedAmount.toFixed(2) }) : t('payment.rechargeSummary', { amount: formatSelectedPaymentAmount(validAmount), credit: creditedAmount.toFixed(2) }) }}</p>
-                <p v-else class="text-gray-600">{{ isCryptoCreditInput ? t('payment.chooseCreditGuide') : t('payment.rechargeGuideText', { amount: formatSelectedPaymentAmount(1), credit: balanceRechargeMultiplier.toFixed(2) }) }}</p>
-                <p class="mt-1 text-xs text-gray-500">{{ t('payment.accountCreditPurpose') }}</p>
-              </div>
             </div>
             <div v-if="enabledMethods.length >= 1" class="card p-6">
               <PaymentMethodSelector
                 :methods="methodOptions"
                 :selected="selectedMethod"
-                @select="onRechargeMethodSelect"
+                @select="selectedMethod = $event"
               />
-              <p v-if="isCryptoRecharge" class="mt-3 text-sm leading-relaxed text-gray-600">{{ t('payment.cryptoPaymentGuide') }}</p>
             </div>
-            <div v-if="validAmount > 0 && (showActualPay || bonusQuote.percent > 0 || balanceRechargeMultiplier !== 1)" class="card p-6">
+            <div v-if="validAmount > 0" class="card p-6">
               <div class="space-y-2 text-sm">
                 <div class="flex justify-between">
-                  <span class="text-gray-500 dark:text-gray-400">{{ t('payment.rechargeAmount', { currency: selectedCurrency }) }}</span>
+                  <span class="text-gray-500 dark:text-gray-400">{{ t('payment.paymentAmount') }}</span>
                   <span :class="discountAmount > 0 ? 'text-gray-400 line-through dark:text-gray-500' : 'text-gray-900 dark:text-white'">{{ formatSelectedPaymentAmount(validAmount) }}</span>
                 </div>
                 <div v-if="discountAmount > 0" class="flex justify-between" data-testid="recharge-discount-row">
@@ -101,7 +99,7 @@
                   <span class="font-medium text-red-600 dark:text-red-400">+${{ bonusQuote.bonus.toFixed(2) }}</span>
                 </div>
                 <div v-if="showCreditedBalance" class="flex justify-between" :class="{ 'border-t border-gray-200 pt-2 dark:border-dark-600': !showActualPay && !showBonusRow }" data-testid="recharge-credited-row">
-                  <span class="text-gray-500 dark:text-gray-400">{{ t('payment.accountCreditReceived') }}</span>
+                  <span class="text-gray-500 dark:text-gray-400">{{ t('payment.creditedBalance') }}</span>
                   <span :class="bonusQuote.percent > 0 ? 'font-semibold text-gray-900 dark:text-white' : 'text-gray-900 dark:text-white'">${{ creditedAmount.toFixed(2) }}</span>
                 </div>
                 <p v-if="balanceRechargeMultiplier !== 1" class="border-t border-gray-200 pt-2 text-xs text-gray-500 dark:border-dark-600 dark:text-gray-400">
@@ -109,24 +107,12 @@
                 </p>
               </div>
             </div>
-            <div class="rounded-xl border border-amber-200/80 bg-amber-50/60 p-4 text-xs leading-relaxed text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-200">
-              <div class="mb-2 flex items-center gap-1.5 font-semibold text-amber-800 dark:text-amber-300">
-                <svg class="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
-                </svg>
-                <span class="text-sm">充值须知与服务说明</span>
-              </div>
-              <ol class="list-decimal list-inside space-y-1.5 text-gray-700 dark:text-gray-300">
-                <li><strong class="text-amber-950 dark:text-amber-100">不可退款声明</strong>：由于虚拟商品的特殊性质，已充值额度不提供退款服务。</li>
-                <li><strong class="text-amber-950 dark:text-amber-100">小额测试建议</strong>：为保障您的权益，建议您首次先进行小额充值测试，确认符合需求后再按需充值。</li>
-              </ol>
-            </div>
-            <button v-if="!isCryptoRecharge" :class="['btn w-full py-3 text-base font-medium', paymentButtonClass]" :disabled="!canSubmit || submitting" @click="handleSubmitRecharge">
+            <button :class="['btn w-full py-3 text-base font-medium', paymentButtonClass]" :disabled="!canSubmit || submitting" @click="handleSubmitRecharge">
               <span v-if="submitting" class="flex items-center justify-center gap-2">
                 <span class="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
                 {{ t('common.processing') }}
               </span>
-              <span v-else>{{ isCryptoRecharge ? t('payment.goToPayment') : `${t('payment.createOrder')} ${formatSelectedPaymentAmount(totalAmount)}` }}</span>
+              <span v-else>{{ t('payment.createOrder') }} {{ formatSelectedPaymentAmount(totalAmount) }}</span>
             </button>
             </template>
           </template>
@@ -289,13 +275,11 @@
         </div>
       </Transition>
     </Teleport>
-  </component>
+  </AppLayout>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
-
-withDefaults(defineProps<{ embedded?: boolean }>(), { embedded: false })
 import { useI18n } from 'vue-i18n'
 import { marked } from 'marked'
 import DOMPurify from 'dompurify'
@@ -346,6 +330,7 @@ const paymentStore = usePaymentStore()
 const subscriptionStore = useSubscriptionStore()
 const appStore = useAppStore()
 
+const user = computed(() => authStore.user)
 const activeSubscriptions = computed(() => subscriptionStore.activeSubscriptions)
 
 function getDaysRemaining(expiresAt: string): number {
@@ -629,8 +614,6 @@ const globalMaxAmount = computed(() => {
 // Selected method's limits (for validation and error messages)
 const selectedLimit = computed(() => visibleMethods.value[selectedMethod.value])
 const selectedCurrency = computed(() => normalizePaymentCurrency(selectedLimit.value?.currency))
-const isCryptoRecharge = computed(() => ['usdt_trc20', 'usdt_bep20', 'usdc_base'].includes(selectedMethod.value))
-const isCryptoCreditInput = computed(() => isCryptoRecharge.value && selectedCurrency.value === 'CNY' && balanceRechargeMultiplier.value === 1)
 const localeCode = computed(() => {
   const raw = i18n.locale as unknown
   if (typeof raw === 'string') return raw
@@ -688,7 +671,7 @@ const payBaseAmount = computed(() => bonusQuote.value.payBase)
 const discountAmount = computed(() => roundPaymentAmount(validAmount.value - payBaseAmount.value, selectedCurrency.value))
 const creditedAmount = computed(() => bonusQuote.value.credited)
 const showBonusRow = computed(() => bonusQuote.value.mode !== 'discount' && bonusQuote.value.bonus > 0)
-const showCreditedBalance = computed(() => selectedCurrency.value !== 'USD' || balanceRechargeMultiplier.value !== 1 || bonusQuote.value.percent > 0)
+const showCreditedBalance = computed(() => balanceRechargeMultiplier.value !== 1 || bonusQuote.value.percent > 0)
 
 const methodOptions = computed<PaymentMethodOption[]>(() =>
   enabledMethods.value.map((type) => {
@@ -842,14 +825,6 @@ function closeRenewalModal() {
 async function handleSubmitRecharge() {
   if (!canSubmit.value || submitting.value) return
   await createOrder(validAmount.value, 'balance')
-}
-
-async function onRechargeMethodSelect(method: string) {
-  if (submitting.value) return
-  selectedMethod.value = method
-  if (isCryptoRecharge.value && canSubmit.value) {
-    await createOrder(validAmount.value, 'balance')
-  }
 }
 
 async function confirmSubscribe() {

@@ -64,7 +64,6 @@ describe('useRoutePrefetch', () => {
 
   afterEach(() => {
     vi.restoreAllMocks()
-    vi.unstubAllGlobals()
     // 恢复原始函数
     window.requestIdleCallback = originalRequestIdleCallback
     window.cancelIdleCallback = originalCancelIdleCallback
@@ -113,65 +112,6 @@ describe('useRoutePrefetch', () => {
   })
 
   describe('triggerPrefetch', () => {
-    it.each([
-      { saveData: true },
-      { effectiveType: 'slow-2g' },
-      { effectiveType: '2g' },
-      { effectiveType: '3g' }
-    ])('skips constrained connections: %j', async (connection) => {
-      const constrainedNavigator = Object.create(navigator)
-      Object.defineProperty(constrainedNavigator, 'connection', { value: connection })
-      vi.stubGlobal('navigator', constrainedNavigator)
-      const { triggerPrefetch, prefetchedRoutes } = useRoutePrefetch(mockRouter)
-      triggerPrefetch(createMockRoute('/dashboard'))
-      await new Promise((resolve) => setTimeout(resolve, 30))
-      expect(prefetchedRoutes.value.size).toBe(0)
-    })
-
-    it('skips background tabs', async () => {
-      vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('hidden')
-      const { triggerPrefetch, prefetchedRoutes } = useRoutePrefetch(mockRouter)
-      triggerPrefetch(createMockRoute('/dashboard'))
-      await new Promise((resolve) => setTimeout(resolve, 30))
-      expect(prefetchedRoutes.value.size).toBe(0)
-    })
-
-    it('retries after a failed import', async () => {
-      const importer = vi.fn().mockRejectedValueOnce(new Error('offline')).mockResolvedValue({})
-      mockRouter.getRoutes = () => [
-        { path: '/keys', components: { default: importer } }
-      ] as unknown as RouteRecordNormalized[]
-      const { triggerPrefetch, prefetchedRoutes } = useRoutePrefetch(mockRouter)
-      triggerPrefetch(createMockRoute('/dashboard'))
-      await new Promise((resolve) => setTimeout(resolve, 30))
-      expect(prefetchedRoutes.value.size).toBe(0)
-      triggerPrefetch(createMockRoute('/dashboard'))
-      await new Promise((resolve) => setTimeout(resolve, 30))
-      expect(importer).toHaveBeenCalledTimes(2)
-      expect(prefetchedRoutes.value.has('/dashboard')).toBe(true)
-    })
-
-    it('serializes imports and stops the remaining work after cancellation', async () => {
-      let finish: () => void = () => {}
-      const first = vi.fn(() => new Promise<void>((resolve) => { finish = resolve }))
-      const second = vi.fn().mockResolvedValue({})
-      mockRouter.getRoutes = () => [
-        { path: '/keys', components: { default: first } },
-        { path: '/usage', components: { default: second } }
-      ] as unknown as RouteRecordNormalized[]
-      const { triggerPrefetch, cancelPendingPrefetch, prefetchedRoutes } = useRoutePrefetch(mockRouter)
-      triggerPrefetch(createMockRoute('/dashboard'))
-      await new Promise((resolve) => setTimeout(resolve, 30))
-      expect(first).toHaveBeenCalledTimes(1)
-      expect(second).not.toHaveBeenCalled()
-      cancelPendingPrefetch()
-      finish()
-      await Promise.resolve()
-      await Promise.resolve()
-      expect(second).not.toHaveBeenCalled()
-      expect(prefetchedRoutes.value.size).toBe(0)
-    })
-
     it('应该在浏览器空闲时触发预加载', async () => {
       const { triggerPrefetch, prefetchedRoutes } = useRoutePrefetch(mockRouter)
       const route = createMockRoute('/admin/dashboard')

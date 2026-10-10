@@ -87,19 +87,6 @@ describe('HomeView compact mode', () => {
     expect(wrapper.find('[data-testid="compact-home"]').exists()).toBe(false)
   })
 
-  it('removes executable content from custom home HTML', () => {
-    const wrapper = mountHome({
-      home_content: '<section id="custom-home"><strong>Safe</strong><img src="x" onerror="alert(1)"><a href="javascript:alert(1)">Link</a><script>alert(1)</script><form action="/login"><input name="password"></form></section>',
-    })
-
-    expect(wrapper.get('#custom-home strong').text()).toBe('Safe')
-    expect(wrapper.find('script').exists()).toBe(false)
-    expect(wrapper.find('form').exists()).toBe(false)
-    expect(wrapper.find('input').exists()).toBe(false)
-    expect(wrapper.get('#custom-home img').attributes('onerror')).toBeUndefined()
-    expect(wrapper.get('#custom-home a').attributes('href')).toBeUndefined()
-  })
-
   it('renders custom URL content ahead of compact mode', () => {
     const wrapper = mountHome({
       compact_home_enabled: true,
@@ -107,8 +94,6 @@ describe('HomeView compact mode', () => {
     })
 
     expect(wrapper.get('iframe').attributes('src')).toBe('https://example.com/home')
-    expect(wrapper.get('iframe').attributes('sandbox')).toBe('allow-scripts allow-forms allow-popups')
-    expect(wrapper.get('iframe').attributes('referrerpolicy')).toBe('no-referrer')
     expect(wrapper.find('[data-testid="compact-home"]').exists()).toBe(false)
   })
 

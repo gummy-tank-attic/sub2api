@@ -3,12 +3,10 @@ package middleware
 import "github.com/gin-gonic/gin"
 
 // AuthSubject is the minimal authenticated identity stored in gin context.
-// SessionGeneration carries the authenticated JWT epoch into derived
-// capabilities such as OAuth bind state.
+// Decision: {UserID int64, Concurrency int}
 type AuthSubject struct {
-	UserID            int64
-	Concurrency       int
-	SessionGeneration int64
+	UserID      int64
+	Concurrency int
 }
 
 func GetAuthSubjectFromContext(c *gin.Context) (AuthSubject, bool) {

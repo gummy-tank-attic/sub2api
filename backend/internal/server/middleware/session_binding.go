@@ -19,6 +19,11 @@ func SessionBindingContext(cfg *config.Config) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		forwardedIPSettings := cfg.ForwardedClientIPSettings()
 		ip.SetForwardedIPSettings(c, forwardedIPSettings.TrustForwardedIP, forwardedIPSettings.Headers)
+		if verified, ok := c.Get("serverless_verified_ip"); ok {
+			if address, valid := verified.(string); valid {
+				ip.SetVerifiedForwardedIP(c, address)
+			}
+		}
 		userAgent := normalizePersistentText(c.Request.UserAgent(), maxPersistentUserAgentBytes)
 		c.Request.Header.Set("User-Agent", userAgent)
 		binding := &service.SessionBinding{
@@ -65,15 +70,7 @@ func enforceSessionBinding(
 	auditService *service.AuditLogService,
 	claims *service.JWTClaims,
 ) bool {
-	if settingService == nil {
-		return true
-	}
-	enabled, err := settingService.SessionBindingEnabled(c.Request.Context())
-	if err != nil {
-		AbortWithError(c, 503, "AUTH_STATE_UNAVAILABLE", "Authentication policy is temporarily unavailable")
-		return false
-	}
-	if !enabled {
+	if settingService == nil || !settingService.IsSessionBindingEnabled(c.Request.Context()) {
 		return true
 	}
 	if claims == nil || claims.BindingHash == "" {

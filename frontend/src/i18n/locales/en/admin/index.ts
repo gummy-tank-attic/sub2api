@@ -1,3 +1,5 @@
+import requestCapture from './requestCapture'
+import astraGateway from './astraGateway'
 import overview from './overview'
 import channels from './channels'
 import accounts from './accounts'
@@ -7,8 +9,11 @@ import settings from './settings'
 import audit from './audit'
 import promptAudit from './promptAudit'
 import plugins from './plugins'
+import harvestFlow from './harvestFlow'
 
 export default {
+  ...requestCapture,
+  ...astraGateway,
   ...overview,
   ...channels,
   ...accounts,
@@ -18,4 +23,5 @@ export default {
   ...audit,
   ...promptAudit,
   ...plugins,
+  ...harvestFlow,
 }

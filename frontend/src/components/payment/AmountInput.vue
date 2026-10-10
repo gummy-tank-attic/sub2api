@@ -3,9 +3,9 @@
     <!-- Quick Amount Buttons -->
     <div>
       <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-        {{ creditInput ? t('payment.chooseCreditAmount') : `${t('payment.quickAmounts')}（${currency || 'CNY'}）` }}
+        {{ t('payment.quickAmounts') }}
       </label>
-      <div class="grid gap-x-4 gap-y-4 pt-2" :class="allowCustom ? 'grid-cols-3' : 'grid-cols-2 sm:grid-cols-5'">
+      <div class="grid grid-cols-3 gap-x-4 gap-y-4 pt-2">
         <button
           v-for="amt in filteredAmounts"
           :key="amt"
@@ -34,7 +34,7 @@
               <span class="h-1 w-1 shrink-0 rounded-full bg-white"></span>
             </span>
           </span>
-          <span class="block">{{ creditInput ? '$' : currencySymbol(currency) }}{{ amt }}</span>
+          <span class="block">{{ amt }}</span>
           <!-- 配置了优惠阶梯时，所有按钮都显示第二行，保持高度一致：赠金显示到账 USD，折扣显示折后实付 -->
           <span
             v-if="showSecondLine"
@@ -49,13 +49,13 @@
     </div>
 
     <!-- Custom Amount Input -->
-    <div v-if="allowCustom">
+    <div>
       <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-        {{ creditInput ? t('payment.customCreditAmount') : `${t('payment.customAmount')}（${currency || 'CNY'}）` }}
+        {{ t('payment.customAmount') }}
       </label>
       <div class="relative">
         <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-dark-500">
-          {{ creditInput ? '$' : currencySymbol(currency) }}
+          $
         </span>
         <input
           type="text"
@@ -75,7 +75,7 @@ import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { RechargeBonusTier } from '@/types/payment'
 import { formatRechargeBonusNumber, quoteRechargeBonus, type RechargeBonusMode } from '@/utils/rechargeBonus'
-import { currencySymbol, formatPaymentAmount } from './currency'
+import { formatPaymentAmount } from './currency'
 
 const props = withDefaults(defineProps<{
   amounts?: number[]
@@ -90,8 +90,6 @@ const props = withDefaults(defineProps<{
   multiplier?: number
   /** 支付币种（折扣模式第二行实付金额的币种与精度） */
   currency?: string
-  creditInput?: boolean
-  allowCustom?: boolean
 }>(), {
   amounts: () => [10, 20, 50, 100, 200, 500, 1000, 2000, 5000],
   min: 0,
@@ -100,8 +98,6 @@ const props = withDefaults(defineProps<{
   bonusMode: 'bonus',
   multiplier: 1,
   currency: undefined,
-  creditInput: false,
-  allowCustom: true,
 })
 
 const emit = defineEmits<{

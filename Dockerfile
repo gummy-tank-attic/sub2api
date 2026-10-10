@@ -22,6 +22,7 @@ ARG NPM_CONFIG_REGISTRY=
 # it on the native host arch instead of under QEMU emulation for the target.
 FROM --platform=${BUILDPLATFORM} ${NODE_IMAGE} AS frontend-builder
 ARG NPM_CONFIG_REGISTRY
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 
 WORKDIR /app/frontend
 
@@ -30,7 +31,6 @@ RUN corepack enable && corepack prepare pnpm@9 --activate
 
 # Install dependencies first (better caching)
 COPY frontend/package.json frontend/pnpm-lock.yaml ./
-COPY frontend/vendor/ ./vendor/
 RUN --mount=type=cache,id=sub2api-pnpm-store,target=/root/.local/share/pnpm/store \
     if [ -n "${NPM_CONFIG_REGISTRY}" ]; then pnpm config set registry "${NPM_CONFIG_REGISTRY}"; fi && \
     pnpm install --frozen-lockfile --prefer-offline
@@ -42,12 +42,7 @@ RUN --mount=type=cache,id=sub2api-pnpm-store,target=/root/.local/share/pnpm/stor
 # Copy only that subtree to keep the build dependency minimal.
 COPY frontend/ ./
 COPY docs/legal/ /app/docs/legal/
-# FXVIA keeps brand-only overrides outside the upstream frontend tree so that
-# routine upstream merges do not contain unrelated visual changes. The file is
-# appended only in the custom build context and has no effect upstream.
-COPY front-fxvia/ /app/front-fxvia/
-RUN if [ -f /app/front-fxvia/brand.css ]; then cat /app/front-fxvia/brand.css >> ./src/style.css; fi && \
-    pnpm run build
+RUN pnpm run build
 
 # -----------------------------------------------------------------------------
 # Stage 2: Backend Builder

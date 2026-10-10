@@ -118,17 +118,6 @@ func SecurityHeaders(cfg config.CSPConfig, getFrameSrcOrigins func() []string) g
 	policy = enhanceCSPPolicy(policy)
 
 	return func(c *gin.Context) {
-		c.Header("X-Content-Type-Options", "nosniff")
-		c.Header("X-Frame-Options", "DENY")
-		c.Header("Referrer-Policy", "strict-origin-when-cross-origin")
-		if isAPIRoutePath(c) {
-			c.Next()
-			return
-		}
-		if c.Request != nil && c.Request.URL != nil && strings.HasPrefix(c.Request.URL.Path, "/api/v1/auth/") {
-			c.Header("Cache-Control", "no-store")
-		}
-
 		finalPolicy := policy
 		if getFrameSrcOrigins != nil {
 			for _, origin := range getFrameSrcOrigins() {
@@ -136,6 +125,14 @@ func SecurityHeaders(cfg config.CSPConfig, getFrameSrcOrigins func() []string) g
 					finalPolicy = addToDirective(finalPolicy, "frame-src", origin)
 				}
 			}
+		}
+
+		c.Header("X-Content-Type-Options", "nosniff")
+		c.Header("X-Frame-Options", "DENY")
+		c.Header("Referrer-Policy", "strict-origin-when-cross-origin")
+		if isAPIRoutePath(c) {
+			c.Next()
+			return
 		}
 
 		if cfg.Enabled {

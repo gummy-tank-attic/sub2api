@@ -397,7 +397,7 @@ func (h *AuthHandler) OIDCOAuthCallback(c *gin.Context) {
 		upstreamClaims["compat_email"] = compatEmail
 	}
 	if intent == oauthIntentBindCurrentUser {
-		bindAuthorization, err := h.readOAuthBindAuthorizationFromCookie(c, oidcOAuthBindUserCookieName)
+		targetUserID, err := h.readOAuthBindUserIDFromCookie(c, oidcOAuthBindUserCookieName)
 		if err != nil {
 			redirectOAuthError(c, frontendCallback, "invalid_state", "invalid oauth bind target", "")
 			return
@@ -405,8 +405,7 @@ func (h *AuthHandler) OIDCOAuthCallback(c *gin.Context) {
 		if err := h.createOAuthPendingSession(c, oauthPendingSessionPayload{
 			Intent:                 oauthIntentBindCurrentUser,
 			Identity:               identityRef,
-			TargetUserID:           &bindAuthorization.UserID,
-			SessionGeneration:      &bindAuthorization.SessionGeneration,
+			TargetUserID:           &targetUserID,
 			ResolvedEmail:          email,
 			RedirectTo:             redirectTo,
 			BrowserSessionKey:      browserSessionKey,

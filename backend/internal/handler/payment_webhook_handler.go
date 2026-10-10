@@ -26,6 +26,9 @@ type PaymentWebhookHandler struct {
 // maxWebhookBodySize is the maximum allowed webhook request body size (1 MB).
 const maxWebhookBodySize = 1 << 20
 
+// webhookLogTruncateLen is the maximum length of raw body logged on verify failure.
+const webhookLogTruncateLen = 200
+
 // NewPaymentWebhookHandler creates a new PaymentWebhookHandler.
 func NewPaymentWebhookHandler(paymentService *service.PaymentService, registry *payment.Registry) *PaymentWebhookHandler {
 	return &PaymentWebhookHandler{
@@ -70,19 +73,11 @@ func (h *PaymentWebhookHandler) handleNotify(c *gin.Context, providerKey string)
 	if c.Request.Method == http.MethodGet {
 		// GET callbacks (e.g. EasyPay) pass params as URL query string
 		rawBody = c.Request.URL.RawQuery
-		if len(rawBody) > maxWebhookBodySize {
-			c.String(http.StatusRequestEntityTooLarge, "webhook too large")
-			return
-		}
 	} else {
-		body, err := io.ReadAll(io.LimitReader(c.Request.Body, maxWebhookBodySize+1))
+		body, err := io.ReadAll(io.LimitReader(c.Request.Body, maxWebhookBodySize))
 		if err != nil {
 			slog.Error("[Payment Webhook] failed to read body", "provider", providerKey, "error", err)
 			c.String(http.StatusBadRequest, "failed to read body")
-			return
-		}
-		if len(body) > maxWebhookBodySize {
-			c.String(http.StatusRequestEntityTooLarge, "webhook too large")
 			return
 		}
 		rawBody = string(body)
@@ -110,7 +105,12 @@ func (h *PaymentWebhookHandler) handleNotify(c *gin.Context, providerKey string)
 
 	resolvedProviderKey, notification, err := verifyNotificationWithProviders(c.Request.Context(), providers, rawBody, headers)
 	if err != nil {
+		truncatedBody := rawBody
+		if len(truncatedBody) > webhookLogTruncateLen {
+			truncatedBody = truncatedBody[:webhookLogTruncateLen] + "...(truncated)"
+		}
 		slog.Error("[Payment Webhook] verify failed", "provider", providerKey, "error", err, "method", c.Request.Method, "bodyLen", len(rawBody))
+		slog.Debug("[Payment Webhook] verify failed body", "provider", providerKey, "rawBody", truncatedBody)
 		c.String(http.StatusBadRequest, "verify failed")
 		return
 	}

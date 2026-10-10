@@ -2,7 +2,6 @@ import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import App from './App.vue'
 import router from './router'
-import { preloadInitialPublicRoute } from './router/initialPublicRoute'
 import i18n, { initI18n } from './i18n'
 import { useAppStore } from '@/stores/app'
 import { updateFavicon } from '@/utils/branding'
@@ -33,7 +32,7 @@ function initThemeClass() {
 async function bootstrap() {
   // Default locale to English for global KYB compliance if not explicitly chosen
   if (!localStorage.getItem('sub2api_locale')) {
-    localStorage.setItem('sub2api_locale', 'en');
+    localStorage.setItem('sub2api_locale', 'en')
   }
 
   // Apply theme class globally before app mount to keep all routes consistent.
@@ -55,7 +54,6 @@ async function bootstrap() {
   }
   updateFavicon(appStore.siteLogo)
 
-  void preloadInitialPublicRoute(window.location.pathname)
   await initI18n()
 
   app.use(router)

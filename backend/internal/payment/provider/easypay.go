@@ -21,9 +21,6 @@ import (
 )
 
 // EasyPay constants.
-// EasyPayBepusdtCNYRecharge is an opt-in instance setting, not a gateway-wide rate.
-const EasyPayBepusdtCNYRecharge = "bepusdtCNYRecharge"
-
 const (
 	easypayCodeSuccess     = 1
 	easypayStatusPaid      = 1
@@ -126,17 +123,6 @@ func (e *EasyPay) MerchantIdentityMetadata() map[string]string {
 }
 
 func (e *EasyPay) CreatePayment(ctx context.Context, req payment.CreatePaymentRequest) (*payment.CreatePaymentResponse, error) {
-	if e.config[EasyPayBepusdtCNYRecharge] == "true" && req.OrderType == payment.OrderTypeBalance {
-		// The deployed BEpusdt compatibility API exposes submit.php, not mapi.php.
-		if e.config["paymentMode"] != paymentModePopup {
-			return nil, fmt.Errorf("BEpusdt CNY recharge requires popup payment mode")
-		}
-		switch e.upstreamPaymentType(req.PaymentType) {
-		case "usdt.trc20", "usdt.bep20", "usdc.base":
-		default:
-			return nil, fmt.Errorf("BEpusdt CNY recharge requires a supported stablecoin method")
-		}
-	}
 	// Payment mode determined by instance config, not payment type.
 	// "popup" → hosted page (submit.php); "qrcode"/default → API call (mapi.php).
 	mode := e.config["paymentMode"]
@@ -158,7 +144,6 @@ func (e *EasyPay) createRedirectPayment(req payment.CreatePaymentRequest) (*paym
 		"return_url": returnURL, "name": req.Subject,
 		"money": req.Amount,
 	}
-	e.applyRechargeRate(params, req)
 	if cid := e.resolveCID(paymentType); cid != "" {
 		params["cid"] = cid
 	}
@@ -223,16 +208,6 @@ func (e *EasyPay) createAPIPayment(ctx context.Context, req payment.CreatePaymen
 		PayURL:  resolveEasyPayReturnedRef(base, payURL),
 		QRCode:  resolveEasyPayReturnedRef(base, resp.QRCode),
 	}, nil
-}
-
-// applyRechargeRate runs before signing the hosted checkout request. BEpusdt ~1
-// applies the latest synced raw CNY/coin rate to this order only. Empty rate
-// would use the shared gateway's configured rate (which may be fixed at 1).
-func (e *EasyPay) applyRechargeRate(params map[string]string, req payment.CreatePaymentRequest) {
-	if e.config[EasyPayBepusdtCNYRecharge] == "true" && req.OrderType == payment.OrderTypeBalance {
-		params["fiat"] = "CNY"
-		params["rate"] = "~1"
-	}
 }
 
 // resolveEasyPayReturnedRef absolutizes a payurl/payurl2/qrcode reference that

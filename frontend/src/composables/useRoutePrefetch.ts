@@ -15,15 +15,6 @@ import type { RouteLocationNormalized, Router } from 'vue-router'
  */
 type ComponentImportFn = () => Promise<unknown>
 
-const canPrefetch = (): boolean => {
-  const connection = (navigator as Navigator & {
-    connection?: { saveData?: boolean; effectiveType?: string }
-  }).connection
-  return document.visibilityState !== 'hidden' &&
-    !connection?.saveData &&
-    !['slow-2g', '2g', '3g'].includes(connection?.effectiveType || '')
-}
-
 /**
  * 预加载邻接表：定义每个路由应该预加载哪些相邻路由
  * 只存储路由路径，不存储 import 函数，避免打包问题
@@ -79,7 +70,6 @@ const cancelScheduledCallback = (handle: IdleCallbackHandle): void => {
 export function useRoutePrefetch(router?: Router) {
   // 当前挂起的预加载任务句柄
   const pendingPrefetchHandle = ref<IdleCallbackHandle | null>(null)
-  let generation = 0
 
   // 已预加载的路由集合
   const prefetchedRoutes = ref<Set<string>>(new Set())
@@ -113,16 +103,14 @@ export function useRoutePrefetch(router?: Router) {
   /**
    * 执行单个组件的预加载
    */
-  const prefetchComponent = async (importFn: ComponentImportFn): Promise<boolean> => {
+  const prefetchComponent = async (importFn: ComponentImportFn): Promise<void> => {
     try {
       await importFn()
-      return true
     } catch (error) {
       // 静默处理预加载错误
       if (import.meta.env.DEV) {
         console.debug('[Prefetch] Failed to prefetch component:', error)
       }
-      return false
     }
   }
 
@@ -130,7 +118,6 @@ export function useRoutePrefetch(router?: Router) {
    * 取消挂起的预加载任务
    */
   const cancelPendingPrefetch = (): void => {
-    generation += 1
     if (pendingPrefetchHandle.value !== null) {
       cancelScheduledCallback(pendingPrefetchHandle.value)
       pendingPrefetchHandle.value = null
@@ -142,16 +129,13 @@ export function useRoutePrefetch(router?: Router) {
    */
   const triggerPrefetch = (route: RouteLocationNormalized): void => {
     cancelPendingPrefetch()
-    if (!canPrefetch()) return
-    const currentGeneration = generation
 
     const prefetchPaths = getPrefetchPaths(route)
     if (prefetchPaths.length === 0) return
 
     pendingPrefetchHandle.value = scheduleIdleCallback(
-      async () => {
+      () => {
         pendingPrefetchHandle.value = null
-        if (!canPrefetch() || currentGeneration !== generation) return
 
         const routePath = route.path
         if (prefetchedRoutes.value.has(routePath)) return
@@ -166,13 +150,9 @@ export function useRoutePrefetch(router?: Router) {
         }
 
         if (importFns.length > 0) {
-          for (const importFn of importFns) {
-            if (!canPrefetch() || currentGeneration !== generation) return
-            if (!await prefetchComponent(importFn)) return
-          }
-          if (currentGeneration === generation) {
+          Promise.all(importFns.map(prefetchComponent)).then(() => {
             prefetchedRoutes.value.add(routePath)
-          }
+          })
         }
       },
       { timeout: 2000 }

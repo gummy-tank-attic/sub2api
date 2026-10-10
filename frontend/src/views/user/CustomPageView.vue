@@ -247,7 +247,7 @@ const embeddedUrl = computed(() => {
   return buildEmbeddedUrl(
     menuItem.value.url,
     authStore.user?.id,
-    undefined,
+    authStore.token,
     pageTheme.value,
     locale.value,
   )

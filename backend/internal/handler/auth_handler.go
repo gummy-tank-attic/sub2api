@@ -150,17 +150,17 @@ func (h *AuthHandler) ensureBackendModeAllowsUser(ctx context.Context, user *ser
 	if user == nil {
 		return infraerrors.Unauthorized("INVALID_USER", "user not found")
 	}
-	if h == nil || !h.isBackendModeEnabled(ctx) || user.IsAdmin() {
+	if h == nil || !h.isBackendModeEnabled(ctx) || user.IsAdmin() || user.IsObserver() {
 		return nil
 	}
-	return infraerrors.Forbidden("BACKEND_MODE_ADMIN_ONLY", "Backend mode is active. Only admin login is allowed.")
+	return infraerrors.Forbidden("BACKEND_MODE_ADMIN_ONLY", "Backend mode is active. Only admin or observer login is allowed.")
 }
 
 func (h *AuthHandler) ensureBackendModeAllowsNewUserLogin(ctx context.Context) error {
 	if h == nil || !h.isBackendModeEnabled(ctx) {
 		return nil
 	}
-	return infraerrors.Forbidden("BACKEND_MODE_ADMIN_ONLY", "Backend mode is active. Only admin login is allowed.")
+	return infraerrors.Forbidden("BACKEND_MODE_ADMIN_ONLY", "Backend mode is active. Only admin or observer login is allowed.")
 }
 
 func (h *AuthHandler) isBackendModeEnabled(ctx context.Context) bool {
@@ -261,18 +261,8 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	// Check if TOTP 2FA is enabled for this user. A settings read failure must
-	// not be interpreted as the feature being disabled.
-	totpEnabled := false
-	if h.totpService != nil {
-		var err error
-		totpEnabled, err = h.settingSvc.TotpEnabled(c.Request.Context())
-		if err != nil {
-			response.ErrorFrom(c, infraerrors.ServiceUnavailable("AUTH_STATE_UNAVAILABLE", "Authentication settings temporarily unavailable"))
-			return
-		}
-	}
-	if h.totpService != nil && totpEnabled && user.TotpEnabled {
+	// Check if TOTP 2FA is enabled for this user
+	if h.totpService != nil && h.settingSvc.IsTotpEnabled(c.Request.Context()) && user.TotpEnabled {
 		// Create a temporary login session for 2FA
 		tempToken, err := h.totpService.CreateLoginSession(c.Request.Context(), user.ID, user.Email)
 		if err != nil {
@@ -322,8 +312,12 @@ func (h *AuthHandler) Login2FA(c *gin.Context) {
 	// Get the login session
 	session, err := h.totpService.GetLoginSession(c.Request.Context(), req.TempToken)
 	if err != nil || session == nil {
+		tokenPrefix := ""
+		if len(req.TempToken) >= 8 {
+			tokenPrefix = req.TempToken[:8]
+		}
 		slog.Debug("login_2fa_session_invalid",
-			"temp_token_len", len(req.TempToken),
+			"temp_token_prefix", tokenPrefix,
 			"error", err)
 		response.BadRequest(c, "Invalid or expired 2FA session")
 		return
@@ -357,20 +351,6 @@ func (h *AuthHandler) Login2FA(c *gin.Context) {
 		response.ErrorFrom(c, err)
 		return
 	}
-
-	// Claim the verified 2FA session exactly once before any identity binding or
-	// token issuance. Concurrent requests that verified the same TOTP code can
-	// no longer both cross this boundary.
-	consumedSession, err := h.totpService.ConsumeLoginSession(c.Request.Context(), req.TempToken)
-	if err != nil {
-		response.ErrorFrom(c, infraerrors.ServiceUnavailable("TOTP_SESSION_UNAVAILABLE", "failed to consume 2FA session").WithCause(err))
-		return
-	}
-	if consumedSession == nil || consumedSession.UserID != session.UserID {
-		response.BadRequest(c, "Invalid or expired 2FA session")
-		return
-	}
-	session = consumedSession
 
 	if session.PendingOAuthBind != nil {
 		pendingSvc, err := h.pendingIdentityService()
@@ -428,6 +408,9 @@ func (h *AuthHandler) Login2FA(c *gin.Context) {
 			return
 		}
 	}
+
+	// Delete the login session (only after all checks pass)
+	_ = h.totpService.DeleteLoginSession(c.Request.Context(), req.TempToken)
 
 	if session.PendingOAuthBind == nil {
 		h.authService.RecordSuccessfulLogin(c.Request.Context(), user.ID)
@@ -712,9 +695,9 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 		return
 	}
 
-	// Backend mode: block non-admin token refresh
-	if h.settingSvc.IsBackendModeEnabled(c.Request.Context()) && result.UserRole != "admin" {
-		response.Forbidden(c, "Backend mode is active. Only admin login is allowed.")
+	// Backend mode: allow administrators and observers to keep their panel sessions.
+	if h.settingSvc.IsBackendModeEnabled(c.Request.Context()) && result.UserRole != service.RoleAdmin && result.UserRole != service.RoleObserver {
+		response.Forbidden(c, "Backend mode is active. Only admin or observer login is allowed.")
 		return
 	}
 
@@ -743,18 +726,15 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 	// 允许空请求体（向后兼容）
 	_ = c.ShouldBindJSON(&req)
 
-	var revokeErr error
-	// 如果提供了Refresh Token，撤销它及其整个 token family。
+	// 如果提供了Refresh Token，撤销它
 	if req.RefreshToken != "" {
-		revokeErr = h.authService.RevokeRefreshToken(c.Request.Context(), req.RefreshToken)
+		if err := h.authService.RevokeRefreshToken(c.Request.Context(), req.RefreshToken); err != nil {
+			slog.Debug("failed to revoke refresh token", "error", err)
+			// 不影响登出流程
+		}
 	}
-	// Local logout cleanup is best-effort even if server-side revocation fails.
 	h.consumePendingOAuthSessionOnLogout(c)
 	clearOAuthLogoutCookies(c)
-	if revokeErr != nil {
-		response.ErrorFrom(c, infraerrors.ServiceUnavailable("LOGOUT_REVOCATION_FAILED", "server-side session revocation temporarily unavailable").WithCause(revokeErr))
-		return
-	}
 
 	response.Success(c, LogoutResponse{
 		Message: "Logged out successfully",

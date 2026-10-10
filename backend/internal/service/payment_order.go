@@ -85,9 +85,6 @@ func (s *PaymentService) CreateOrder(ctx context.Context, req CreateOrderRequest
 	if err := s.validateSelectedCreateOrderInstance(ctx, req, sel); err != nil {
 		return nil, err
 	}
-	if err := validateBepusdtRechargeMultiplier(req.OrderType, cfg, sel); err != nil {
-		return nil, err
-	}
 	selectedCurrency := payment.DefaultPaymentCurrency
 	if sel != nil {
 		selectedCurrency = paymentProviderConfigCurrency(sel.ProviderKey, sel.Config)
@@ -449,7 +446,6 @@ func (s *PaymentService) invokeProvider(ctx context.Context, order *dbent.Paymen
 		return nil, err
 	}
 	providerReq := buildProviderCreatePaymentRequest(CreateOrderRequest{
-		OrderType:   order.OrderType,
 		PaymentType: req.PaymentType,
 		OpenID:      req.OpenID,
 		ClientIP:    req.ClientIP,
@@ -524,7 +520,6 @@ func removePostgresTextNUL(value string) string {
 func buildProviderCreatePaymentRequest(req CreateOrderRequest, sel *payment.InstanceSelection, orderID, amount, subject string) payment.CreatePaymentRequest {
 	return payment.CreatePaymentRequest{
 		OrderID:            orderID,
-		OrderType:          req.OrderType,
 		Amount:             amount,
 		PaymentType:        req.PaymentType,
 		Subject:            subject,
@@ -534,17 +529,6 @@ func buildProviderCreatePaymentRequest(req CreateOrderRequest, sel *payment.Inst
 		IsMobile:           req.IsMobile,
 		InstanceSubMethods: selectedInstanceSupportedTypes(sel),
 	}
-}
-
-// Refuse a partially switched configuration before persisting or sending an
-// order: the gateway already converts CNY to coins, so multiplying credits by
-// an exchange rate here would convert twice.
-func validateBepusdtRechargeMultiplier(orderType string, cfg *PaymentConfig, sel *payment.InstanceSelection) error {
-	if orderType == payment.OrderTypeBalance && sel != nil && sel.ProviderKey == payment.TypeEasyPay &&
-		sel.Config[provider.EasyPayBepusdtCNYRecharge] == "true" && cfg.BalanceRechargeMultiplier != 1 {
-		return infraerrors.ServiceUnavailable("PAYMENT_PROVIDER_MISCONFIGURED", "BEpusdt CNY recharge requires balance recharge multiplier 1")
-	}
-	return nil
 }
 
 func selectedInstanceSupportedTypes(sel *payment.InstanceSelection) string {

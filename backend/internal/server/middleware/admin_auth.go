@@ -195,9 +195,6 @@ func validateJWTForAdmin(
 		AbortWithError(c, 401, "TOKEN_REVOKED", "Token has been revoked (password changed)")
 		return false
 	}
-	if !enforceAccessTokenRevocation(c, authService, claims) {
-		return false
-	}
 
 	// 会话绑定校验：IP/UA 任一变化即撤销会话（功能可在系统设置中关闭）
 	if !enforceSessionBinding(c, authService, settingService, auditService, claims) {
@@ -205,15 +202,16 @@ func validateJWTForAdmin(
 	}
 
 	// 检查管理员权限
-	if !user.IsAdmin() {
+	if user.Role == service.RoleObserver && ObserverAccountRouteAllowed(c.Request.Method, c.FullPath()) {
+		c.Request = c.Request.WithContext(service.WithObserverScope(c.Request.Context(), user.ObserverGroupIDs))
+	} else if !user.IsAdmin() {
 		AbortWithError(c, 403, "FORBIDDEN", "Admin access required")
 		return false
 	}
 
 	c.Set(string(ContextKeyUser), AuthSubject{
-		UserID:            user.ID,
-		Concurrency:       user.Concurrency,
-		SessionGeneration: claims.SessionGeneration,
+		UserID:      user.ID,
+		Concurrency: user.Concurrency,
 	})
 	c.Set(string(ContextKeyUserRole), user.Role)
 	c.Set(ContextKeyAuthEmail, user.Email)
